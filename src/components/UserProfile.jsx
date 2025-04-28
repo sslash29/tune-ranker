@@ -8,7 +8,7 @@ function UserProfile() {
   return (
     <>
       <Link
-        to={user.aud ? "/account" : "/form"}
+        to={user.aud ? "/account" : "/form"} // used the aud(authenticated) because the only way for the user log out if he's already in
         style={{ textDecoration: "none", color: "black", marginBottom: "20px" }}
       >
         <div id="user-profile-container" style={{ width: "fit-content" }}>

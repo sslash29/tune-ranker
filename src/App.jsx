@@ -32,7 +32,7 @@ function App() {
         return; // Stop here on error
       }
 
-      const { user, session } = data;
+      const { user } = data;
 
       if (user) {
         const { data: accountsData, error: accountsError } = await supabase
@@ -50,7 +50,7 @@ function App() {
         }
 
         console.log("Accounts data:", accountsData);
-        setUser(accountsData);
+        setUser({ aud: user.aud, ...accountsData });
         setTop100(accountsData.top100);
         setAlbumsMainPage(accountsData.albums);
       } else {

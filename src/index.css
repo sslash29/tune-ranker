@@ -2,14 +2,14 @@
 
 @font-face {
   font-family: "GothamBold"; /* Name to use in your CSS */
-  src: url("/public/Spotify-Font/Gotham-Bold.otf") format("opentype"); /* Path from the public folder */
+  src: url("/Spotify-Font/Gotham-Bold.otf") format("opentype"); /* Path from the public folder */
   font-weight: bold;
   font-style: normal;
 }
 
 @font-face {
   font-family: "GothamLight";
-  src: url("/public//Spotify-Font/Gotham-Light.otf") format("opentype");
+  src: url("//Spotify-Font/Gotham-Light.otf") format("opentype");
   font-weight: normal;
   font-style: normal;
 }

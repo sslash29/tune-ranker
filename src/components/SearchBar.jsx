@@ -7,11 +7,10 @@ function SearchBar({ isAlbumSelected, setAlbumData }) {
   const [value, setValue] = useState("");
   const { shouldFetch, setShouldFetch } = useContext(AlbumSearchContext);
 
-  const API_KEY = import.meta.env.VITE_API_KEY; // ✅ updated for Vite
-
+  const VITE_REACT_APP_API_KEY = import.meta.env.VITE_REACT_APP_API_KEY; // ✅ updated for Vite
   const url =
     shouldFetch && value
-      ? `http://ws.audioscrobbler.com/2.0/?method=album.search&album=${value}&api_key=${API_KEY}&format=json`
+      ? `http://ws.audioscrobbler.com/2.0/?method=album.search&album=${value}&api_key=${VITE_REACT_APP_API_KEY}&format=json`
       : null;
 
   const { data } = useFetch(url);

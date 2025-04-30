@@ -13,18 +13,25 @@ function Album({
   albumsMainPage,
 }) {
   const [rating, setRating] = useState(0);
-  const API_KEY = import.meta.env.VITE_API_KEY; // ✅ updated for Vite  console.dir(albumData);
+  const VITE_REACT_APP_API_KEY = import.meta.env.VITE_REACT_APP_API_KEY;
   const { data, error, loading } = useFetch(
-    `http://ws.audioscrobbler.com//2.0/?method=album.getinfo&api_key=${API_KEY}&artist=${albumData.artist}&album=${albumData.name}&format=json`
+    `http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=${VITE_REACT_APP_API_KEY}&artist=${albumData.artist}&album=${albumData.name}&format=json`
   );
   const { user } = useContext(UserContext);
-  if (data) console.dir(data);
-  if (error) console.log(error);
 
   const tracks = data?.album?.tracks?.track;
 
-  async function GetData() {
-    const AlbumMainPageData = {
+  function formatPlayCount(count) {
+    if (!count) return "N/A";
+    const num = Number(count);
+    if (isNaN(num)) return count;
+    return num >= 1_000_000_000
+      ? `${(num / 1_000_000_000).toFixed(1)}B`
+      : `${(num / 1_000_000).toFixed(1)}M`;
+  }
+
+  async function handleSave() {
+    const newAlbum = {
       rating,
       albumData,
       addedAt: Date.now(),
@@ -32,125 +39,101 @@ function Album({
 
     isAlbumSelected(false);
 
-    const filtered = albumsMainPage?.filter((album) => {
-      const albumData = album.data || album.albumData;
-      return albumData?.name !== AlbumMainPageData?.albumData?.name;
-    });
+    const updatedAlbums = [
+      ...albumsMainPage.filter(
+        (album) => (album.data || album.albumData)?.name !== albumData.name
+      ),
+      newAlbum,
+    ];
 
-    const updatedAlbums = [...filtered, AlbumMainPageData];
     setAlbumsMainPage(updatedAlbums);
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("Accounts")
-      .update({ albums: updatedAlbums })
+      .update({ albums: updatedAlbums, top100: updatedAlbums })
       .eq("id", user.id);
 
-    const { _, top100Error } = await supabase
-      .from("Accounts")
-      .update({ top100: updatedAlbums })
-      .eq("id", user.id);
-
-    if (top100Error) {
-      console.error("error occured while updating top 100");
-      return;
-    }
-    if (error) console.error("Error updating albums: ", error);
-    else console.log("Albums updated successfully: ", data);
+    if (error) console.error("Error updating albums:", error);
+    else console.log("Albums updated successfully.");
   }
 
-  async function removeAlbum(name) {
-    const filtered = albumsMainPage?.filter((album) => {
-      return album.albumData.name !== name;
-    });
+  async function handleDelete(name) {
+    const updatedAlbums = albumsMainPage.filter(
+      (album) => album.albumData.name !== name
+    );
 
-    const { __, error } = await supabase
+    const { error } = await supabase
       .from("Accounts")
-      .update({ albums: filtered })
+      .update({ albums: updatedAlbums, top100: updatedAlbums })
       .eq("id", user.id);
 
-    const { ___, top100Error } = await supabase
-      .from("Accounts")
-      .update({ top100: filtered })
-      .eq("id", user.id);
-
-    if (error) console.error(error);
-    if (top100Error) console.error(top100Error);
+    if (error) console.error("Error deleting album:", error);
     isAlbumSelected(false);
   }
 
   return (
-    <div className="Album-page">
+    <div className="p-7 flex flex-col gap-9">
       {loading ? (
-        <p>loading...</p>
+        <p>Loading...</p>
       ) : (
-        <>
-          <div className="Album">
-            <img src={albumData.image[3]["#text"]} alt="img" />
-            <div className="metadata">
-              <div
-                className="additional-data"
-                style={
-                  albumData.name.includes(" ")
-                    ? {
-                        gap: "1rem",
-                      }
-                    : null
-                }
-              >
-                <div className="artist-album">
-                  <h2
-                    style={
-                      albumData.name.includes(" ")
-                        ? {
-                            marginTop: "20px",
-                            fontSize: "2.3rem",
-                            width: "fit-content",
-                          }
-                        : null
-                    }
-                  >
-                    {albumData.name}
-                  </h2>
-                  <p style={{ fontSize: "larger", marginLeft: "3px" }}>
+        <div>
+          <div className="flex h-[300px] justify-around items-center">
+            <img
+              src={albumData.image?.[3]?.["#text"] || ""}
+              alt="Album cover"
+              className="w-[350px] h-[350px]"
+            />
+            <div className="bg-[#d9d9d9] w-[812px] h-[249px] p-2">
+              <div className="flex  justify-between w-full h-[40%] mt-2">
+                <div className="flex flex-col">
+                  <h2 className="text-5xl">{albumData.name}</h2>
+                  <p className="text-gray-500 translate-x-2">
                     {albumData.artist}
                   </p>
                 </div>
-                <div className="metadata-meta">
-                  <p>Length: 1 hr</p>
-                  <p>Tracks: {albumData?.tracks?.track?.length || "unknown"}</p>
-                  <p>Date: 2016</p>
+                <div className="flex flex-col gap-4 mt-4 h-[230px]">
+                  <div className="flex flex-col text-xl gap-4 self-end">
+                    <p>Length: 1 hr</p>
+                    <p>Tracks: {tracks?.length || "unknown"}</p>
+                    <p>Date: 2016</p>
+                  </div>
                 </div>
               </div>
-              <div className="stars">
-                <StarRate
-                  rating={rating}
-                  setRating={setRating}
-                  size={"2.2rem"}
-                />
+              <div className="flex flex-col gap-5 mt-2  ">
+                <StarRate rating={rating} setRating={setRating} size="2.2rem" />
               </div>
-              <div id="btns">
-                <button id="save-btn" onClick={() => GetData()}>
-                  save
-                </button>
-                <button
-                  id="delete-btn"
-                  onClick={() => removeAlbum(albumData.name)}
-                >
-                  delete
-                </button>
+
+              <div className="flex justify-between items-center mt-7">
+                <p className=" text-gray-500 text-xl">
+                  last.fm listeners:: {formatPlayCount(data?.album?.playcount)}
+                </p>
+                <div className="flex justify-between w-[300px]">
+                  <button
+                    className=" bg-blue-500 p-2.5 px-10 text-white rounded"
+                    onClick={handleSave}
+                  >
+                    Save
+                  </button>
+                  <button
+                    className=" bg-blue-500 p-2.5 px-10 text-white rounded"
+                    onClick={() => handleDelete(albumData.name)}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-            </div>
-            <div>
-              <p style={{ width: "450px", transform: "translateX(-40px)" }}>
-                {data?.album?.wiki?.summary}
-              </p>
             </div>
           </div>
-          <div className="tracks-tags">
+          <div className="mt-4">
+            <p style={{ width: "450px", transform: "translateX(-40px)" }}>
+              {data?.album?.wiki?.summary}
+            </p>
+          </div>
+          <div className="tracks-tags mt-4">
             <Tracks tracks={tracks} albumName={albumData.name} />
             <Tags tags={data?.album?.tags?.tag} />
           </div>
-        </>
+        </div>
       )}
     </div>
   );

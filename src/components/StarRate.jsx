@@ -16,7 +16,7 @@ function StarRate({ rating, setRating, size }) {
   }
 
   return (
-    <div>
+    <div className="flex ">
       {[...Array(5)].map((star, index) => {
         const fullValue = index + 1;
         const halfValue = index + 0.5;

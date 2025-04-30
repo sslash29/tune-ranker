@@ -13,7 +13,7 @@ import supabase from "./supabaseClient";
 function App() {
   const [albumSelected, isAlbumSelected] = useState(false);
   const [albumData, setAlbumData] = useState({});
-  const { setTop100, top100, setUser } = useContext(UserContext);
+  const { setTop100, top100, setUser, user } = useContext(UserContext);
 
   const [albumsMainPage, setAlbumsMainPage] = useState([]);
 
@@ -65,26 +65,30 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const top100Channel = supabase
+    const channel = supabase
       .channel("realtime-accounts")
       .on(
         "postgres_changes",
         {
-          event: "*", // 'INSERT', 'UPDATE', 'DELETE' or '*'
+          event: "*",
           schema: "public",
           table: "Accounts",
-          columns: "top100",
+          filter: `id=eq.${user?.id}`,
         },
         (payload) => {
-          setTop100(payload);
+          console.log("Realtime payload:", payload);
+          if (payload.new?.top100) {
+            setTop100(payload.new.top100);
+          }
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(top100Channel);
+      supabase.removeChannel(channel);
     };
-  }, [top100]);
+  }, [user?.id, top100]);
+
   return (
     <div>
       <AlbumSearchProvider>

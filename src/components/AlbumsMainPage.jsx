@@ -7,7 +7,7 @@ function AlbumsMainPage({ albumsMainPage, isAlbumSelected, setAlbumData }) {
   return (
     <div>
       <p style={{ marginLeft: "2rem" }}>
-        you have listened to {albumsMainPage?.length} 🎉
+        you have listened to {albumsMainPage?.length} 💿
       </p>
       <div className="albums-main-page">
         {albumsMainPage?.map((album, index) => {

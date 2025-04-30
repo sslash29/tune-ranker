@@ -66,7 +66,7 @@ function Top100({ albumData }) {
 
   return (
     <div className="p-5">
-      <ol className="flex flex-col gap-5">
+      <ol className="flex flex-col gap-5d">
         {albumsPosition?.map((album, key) => {
           return (
             <AlbumTop100

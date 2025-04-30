@@ -23,8 +23,8 @@ function StarRate({ rating, setRating, size }) {
         const isHalf = rating === halfValue;
         const isFull = rating >= fullValue;
         return (
-          <>
-            <label key={index}>
+          <div key={index}>
+            <label>
               <input
                 type="radio"
                 name="rate"
@@ -49,7 +49,7 @@ function StarRate({ rating, setRating, size }) {
                 </>
               )}{" "}
             </label>
-          </>
+          </div>
         );
       })}
     </div>

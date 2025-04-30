@@ -14,7 +14,7 @@ function Album({
 }) {
   const [rating, setRating] = useState(0);
   const VITE_REACT_APP_API_KEY = import.meta.env.VITE_REACT_APP_API_KEY;
-  const { data, error, loading } = useFetch(
+  const { data, _, loading } = useFetch(
     `http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=${VITE_REACT_APP_API_KEY}&artist=${albumData.artist}&album=${albumData.name}&format=json`
   );
   const { user } = useContext(UserContext);
@@ -79,19 +79,19 @@ function Album({
         <div>
           <div className="flex h-[300px] justify-around items-center">
             <img
-              src={albumData.image?.[3]?.["#text"] || ""}
+              src={albumData.image?.[3]?.["#text"]}
               alt="Album cover"
               className="w-[350px] h-[350px]"
             />
             <div className="bg-[#d9d9d9] w-[812px] h-[249px] p-2">
               <div className="flex  justify-between w-full h-[40%] mt-2">
-                <div className="flex flex-col">
+                <div className="flex flex-col gap-1">
                   <h2 className="text-5xl">{albumData.name}</h2>
                   <p className="text-gray-500 translate-x-2">
                     {albumData.artist}
                   </p>
                 </div>
-                <div className="flex flex-col gap-4 mt-4 h-[230px]">
+                <div className="flex flex-col gap-4  h-[230px]">
                   <div className="flex flex-col text-xl gap-4 self-end">
                     <p>Length: 1 hr</p>
                     <p>Tracks: {tracks?.length || "unknown"}</p>
@@ -99,13 +99,16 @@ function Album({
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col gap-5 mt-2  ">
+              <div className="flex flex-col gap-5 mt-8">
                 <StarRate rating={rating} setRating={setRating} size="2.2rem" />
               </div>
 
-              <div className="flex justify-between items-center mt-7">
+              <div className="flex justify-between items-center mt-5">
                 <p className=" text-gray-500 text-xl">
-                  last.fm listeners:: {formatPlayCount(data?.album?.playcount)}
+                  last.fm listeners:{" "}
+                  <span className="text-blue-400">
+                    {formatPlayCount(data?.album?.playcount)}
+                  </span>
                 </p>
                 <div className="flex justify-between w-[300px]">
                   <button

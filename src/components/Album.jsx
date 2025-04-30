@@ -124,14 +124,18 @@ function Album({
               </div>
             </div>
           </div>
-          <div className="mt-4">
-            <p style={{ width: "450px", transform: "translateX(-40px)" }}>
-              {data?.album?.wiki?.summary}
-            </p>
-          </div>
-          <div className="tracks-tags mt-4">
-            <Tracks tracks={tracks} albumName={albumData.name} />
-            <Tags tags={data?.album?.tags?.tag} />
+
+          <div className="flex w-full gap-10 mt-11 translate-x-16">
+            <div className=" ">
+              <Tracks tracks={tracks} albumName={albumData.name} />
+            </div>
+
+            <div className="mt-4  flex flex-col items-center">
+              <Tags tags={data?.album?.tags?.tag} />
+              <p className="w-[792px] h-[392px]">
+                {data?.album?.wiki?.summary}
+              </p>
+            </div>
           </div>
         </div>
       )}

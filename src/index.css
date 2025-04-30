@@ -146,22 +146,6 @@ input[type="radio"] {
   cursor: pointer;
 }
 
-.tracks-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.track {
-  width: 500px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px;
-  transition: all 0.4s ease;
-  position: relative;
-}
-
 .track::before {
   content: "";
   position: absolute;
@@ -170,11 +154,11 @@ input[type="radio"] {
   height: 24px;
   border-radius: 5px 0 0 5px;
   transform: translateX(-18px);
+  transition: background-color 0.3s ease; /* optional smooth transition */
 }
 
-.track:hover {
-  background-color: #cbc8c8;
-  border-radius: 5px;
+.track:hover::before {
+  background-color: gray; /* this changes ::before background on hover */
 }
 
 .track-number {

@@ -22,7 +22,7 @@ function Tracks({ tracks = [], albumName }) {
   };
 
   return (
-    <div className="tracks-container">
+    <div className="flex flex-col g-3">
       {tracks.length === 0 ? (
         <h1>Sorry No Tracks</h1>
       ) : (
@@ -35,7 +35,10 @@ function Tracks({ tracks = [], albumName }) {
               : trackDurationSeconds;
 
           return (
-            <div key={index} className="track">
+            <div
+              key={index}
+              className="track w-[500px] flex items-center justify-between p-3 transition-all relative hover:scale-110 "
+            >
               <div className="track-start">
                 <span className="track-number">{index + 1}.</span>
                 {track.name}

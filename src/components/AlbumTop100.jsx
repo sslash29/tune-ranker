@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+
 function AlbumTop100({
   album,
   handleAlbumClick,
@@ -7,19 +9,32 @@ function AlbumTop100({
   edit,
   setEdit,
   albumIndex,
+  isAlbumSelected,
+  setAlbumData,
 }) {
+  const navigate = useNavigate();
+
+  const handleOnImgClick = () => {
+    isAlbumSelected(true);
+    setAlbumData(album.albumData);
+    navigate("/");
+  };
+
   return (
-    <div
-      className="flex items-center gap-5 "
-      onClick={() => handleAlbumClick(index)}
-      key={index}
-    >
+    <div className="flex items-center gap-5">
       <img
         src={album?.albumData?.image[2]["#text"]}
         alt="img"
-        className="w-[174px] h-[174px]"
+        className="w-[174px] h-[174px] cursor-pointer"
+        onDoubleClick={handleOnImgClick}
       />
-      <li className="text-2xl">{album?.albumData?.name}</li>
+      <li
+        className="text-2xl cursor-pointer"
+        onClick={() => handleAlbumClick(index)}
+      >
+        {album?.albumData?.name}
+      </li>
+
       {albumIndex === index && (
         <form
           onSubmit={(e) => {
@@ -34,14 +49,14 @@ function AlbumTop100({
             max={albumsPosition?.length}
             value={edit}
             onChange={(e) => setEdit(e.target.value)}
-            placeholder="enter position (1-based)"
+            placeholder="Enter position (1-based)"
             className="w-[250px] p-2"
           />
           <button
             type="submit"
             className="p-2.5 px-10 bg-blue-500 text-white rounded hover:scale-105 transition-all"
           >
-            submit
+            Submit
           </button>
         </form>
       )}

@@ -76,14 +76,16 @@ function App() {
           filter: `id=eq.${user?.id}`,
         },
         (payload) => {
-          console.log("Realtime payload:", payload);
+          console.log("Realtime payload", payload);
           if (payload.new?.top100) {
             setTop100(payload.new.top100);
+          }
+          if (payload.new?.albums) {
+            setAlbumsMainPage(payload.new.albums);
           }
         }
       )
       .subscribe();
-
     return () => {
       supabase.removeChannel(channel);
     };
@@ -116,7 +118,12 @@ function App() {
             <Route path="/form" element={<Form />} />
             <Route
               path="/top100"
-              element={<Top100 albumData={albumsMainPage} />}
+              element={
+                <Top100
+                  isAlbumSelected={isAlbumSelected}
+                  setAlbumData={setAlbumData}
+                />
+              }
             />
             <Route path="/test" element={<Test />} />
             <Route path="/account" element={<Account />} />

@@ -30,20 +30,21 @@ function SearchBar({ isAlbumSelected, setAlbumData }) {
 
   // Build search URL only when needed
   const url =
-    shouldFetch && value && token
-      ? `https://api.spotify.com/v1/search?query=${encodeURIComponent(
+    shouldFetch && value
+      ? `https://localhost:5000/api/search-album?query=${encodeURIComponent(
           value
-        )}&type=album&limit=3`
+        )}`
       : null;
 
-  // Fetch albums
+  const headers = undefined; // no need to send token from frontend now
+
   const { data, error } = useFetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
+    skip: !token,
   });
 
   const albumsData = data?.albums?.items || [];
+  console.dir(data);
 
   function submit() {
     if (value.trim()) {
@@ -81,7 +82,7 @@ function SearchBar({ isAlbumSelected, setAlbumData }) {
             <AlbumSearch
               key={index}
               name={album.name}
-              img={album.images[1]?.url || album.images[0]?.url || ""}
+              img={album.images[2]?.url || album.images[1]?.url || ""}
               artist={album.artists[0]?.name}
               data={album}
               isAlbumSelected={isAlbumSelected}

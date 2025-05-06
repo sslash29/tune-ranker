@@ -1,19 +1,22 @@
 services:
   web:
+    depends_on:
+      - backend
     build:
       context: .
+      dockerfile: Dockerfile
     environment:
-      - VITE_REACT_APP_API_KEY=8b6a7477b1eb1139d681f4fb6059f6bf
-      - VITE_REACT_APP_SHARED_SECRET=c37628154d203cf00918052d2e1fe335
       - ALBUM_RANKER_PASSWORD=7B9sVvk92DPxnjYF
-      - VITE_ALBUM_RANKER_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhbG16c3didHp3eWNwbWdkZnpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxNTc2NjIsImV4cCI6MjA1NTczMzY2Mn0.KKXHeivhV4ggJpGd_9b6Puvah0nk7Pg9ovD2LgwTv2I
+      - VITE_ALBUM_RANKER_API_KEY=YOUR_API_KEY
     ports:
       - 5173:5173
     volumes:
       - ./src:/app/src
       - ./public:/app/public
-      # Avoid overwriting node_modules in container
-      - /app/node_modules
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - ./ca.crt:/app/ca.crt # Mount existing root CA cert
+      - ./ca.key:/app/ca.key # Mount existing root CA key
     develop:
       watch:
         - path: ./package.json
@@ -26,3 +29,22 @@ services:
         - path: ./public
           target: /app/public
           action: sync
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - SPOTIFY_CLIENT_ID=483531eaaef64143b451d16f766609d7
+      - SPOTIFY_CLIENT_SECRET=e6dac61b3e0a406eb860135b9c01b1ab
+    ports:
+      - 5000:5000
+    volumes:
+      - ./backend:/app
+      - ./ca.crt:/app/certificates/cert.crt # Copy existing root CA cert to expected location
+      - ./ca.key:/app/certificates/cert.key # Copy existing root CA key to expected location
+    develop:
+      watch:
+        - path: ./backend/app.py
+          action: rebuild
+        - path: ./backend/routes/spotify.py
+          action: rebuild

@@ -1,16 +1,11 @@
-# Use the official Node.js image from Docker Hub
-ARG NODE_VERSION=20.12.0
-FROM node:${NODE_VERSION}-alpine
-
+FROM node:20.12.0-alpine
 
 WORKDIR /app
 
 COPY package*.json ./
+RUN npm install
 
-RUN npm install 
-
-
-COPY . .
+COPY . /app
 
 EXPOSE 5173
 

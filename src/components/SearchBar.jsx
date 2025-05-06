@@ -1,20 +1,50 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import useFetch from "../hooks/useFetch";
 import AlbumSearch from "./AlbumSearch";
 import { AlbumSearchContext } from "../context/AlbumSearchContext";
 
 function SearchBar({ isAlbumSelected, setAlbumData }) {
   const [value, setValue] = useState("");
+  const [token, setToken] = useState(null);
   const { shouldFetch, setShouldFetch } = useContext(AlbumSearchContext);
 
-  const VITE_REACT_APP_API_KEY = import.meta.env.VITE_REACT_APP_API_KEY; // ✅ updated for Vite
+  // Fetch access token from Spotify API
+  const fetchAccessToken = async () => {
+    try {
+      const res = await fetch("https://localhost:5000/api/spotify-token");
+      const data = await res.json();
+      if (data.access_token) {
+        setToken(data.access_token);
+      } else {
+        console.error("Failed to get access token:", data);
+      }
+    } catch (err) {
+      console.error("Error fetching token:", err);
+    }
+  };
+
+  // Get token on component mount
+  useEffect(() => {
+    fetchAccessToken();
+  }, []);
+
+  // Build search URL only when needed
   const url =
-    shouldFetch && value
-      ? `http://ws.audioscrobbler.com/2.0/?method=album.search&album=${value}&api_key=${VITE_REACT_APP_API_KEY}&format=json`
+    shouldFetch && value && token
+      ? `https://api.spotify.com/v1/search?query=${encodeURIComponent(
+          value
+        )}&type=album&limit=3`
       : null;
 
-  const { data } = useFetch(url);
-  const albumsData = data?.results?.albummatches?.album?.slice(0, 3) || [];
+  // Fetch albums
+  const { data, error } = useFetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const albumsData = data?.albums?.items || [];
+
   function submit() {
     if (value.trim()) {
       setShouldFetch(true);
@@ -44,14 +74,15 @@ function SearchBar({ isAlbumSelected, setAlbumData }) {
       >
         Submit
       </button>
+
       {shouldFetch && albumsData.length > 0 && (
         <div className="album-navbar-holder">
           {albumsData.map((album, index) => (
             <AlbumSearch
               key={index}
               name={album.name}
-              img={album.image[1]?.["#text"] || ""}
-              artist={album.artist}
+              img={album.images[1]?.url || album.images[0]?.url || ""}
+              artist={album.artists[0]?.name}
               data={album}
               isAlbumSelected={isAlbumSelected}
               setAlbumData={setAlbumData}
@@ -59,6 +90,8 @@ function SearchBar({ isAlbumSelected, setAlbumData }) {
           ))}
         </div>
       )}
+
+      {shouldFetch && error && <p>Error fetching data: {error.message}</p>}
     </div>
   );
 }

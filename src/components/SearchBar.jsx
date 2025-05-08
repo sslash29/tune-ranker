@@ -5,30 +5,8 @@ import { AlbumSearchContext } from "../context/AlbumSearchContext";
 
 function SearchBar({ isAlbumSelected, setAlbumData }) {
   const [value, setValue] = useState("");
-  const [token, setToken] = useState(null);
   const { shouldFetch, setShouldFetch } = useContext(AlbumSearchContext);
-
-  // Fetch access token from Spotify API
-  const fetchAccessToken = async () => {
-    try {
-      const res = await fetch("https://localhost:5000/api/spotify-token");
-      const data = await res.json();
-      if (data.access_token) {
-        setToken(data.access_token);
-      } else {
-        console.error("Failed to get access token:", data);
-      }
-    } catch (err) {
-      console.error("Error fetching token:", err);
-    }
-  };
-
-  // Get token on component mount
-  useEffect(() => {
-    fetchAccessToken();
-  }, []);
-
-  // Build search URL only when needed
+  const { token } = useContext(AlbumSearchContext);
   const url =
     shouldFetch && value
       ? `https://localhost:5000/api/search-album?query=${encodeURIComponent(

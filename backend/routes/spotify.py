@@ -30,9 +30,9 @@ def get_spotify_access_token():
 
     return res.json().get("access_token")
 
+token = get_spotify_access_token()
 @spotify_bp.route("/spotify-token", methods=["GET", "OPTIONS"])
 def spotify_token_route():
-    token = get_spotify_access_token()
     if not token:
         return jsonify({"error": "Failed to get token"}), 500
     return jsonify({"access_token": token}), 200
@@ -43,12 +43,21 @@ def search_album():
     if not query:
         return jsonify({"error": "Missing query parameter"}), 400
 
-    token = get_spotify_access_token()
     if not token:
         return jsonify({"error": "Failed to get token"}), 500
 
     headers = {"Authorization": f"Bearer {token}"}
     url = f"https://api.spotify.com/v1/search?query={query}&type=album&limit=3"
 
+    res = requests.get(url, headers=headers)
+    return jsonify(res.json()), res.status_code
+
+
+
+@spotify_bp.route("/album-tracks")
+def get_spotify_album_tracks():
+    album_id = request.args.get("AlbumId")
+    headers = {"Authorization": f"Bearer {token}"}
+    url = f"https://api.spotify.com/v1/albums/{album_id}/tracks?offset=0&limit=20&locale=en-US,en;q%3D0.5"
     res = requests.get(url, headers=headers)
     return jsonify(res.json()), res.status_code

@@ -2,10 +2,18 @@ import { useEffect, useState } from "react";
 import StarRate from "./StarRate";
 
 function Tracks({ tracks = [], albumName }) {
-  const [trackRatings, setTrackRatings] = useState(function () {
+  const [trackRatings, setTrackRatings] = useState(() => {
     const storedValue = localStorage.getItem(`tracksRated-${albumName}`);
     return storedValue ? JSON.parse(storedValue) : {};
   });
+
+  function formatDuration(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const paddedSeconds = seconds < 10 ? `0${seconds}` : seconds;
+    return `${minutes}:${paddedSeconds}`;
+  }
 
   useEffect(() => {
     localStorage.setItem(
@@ -17,7 +25,7 @@ function Tracks({ tracks = [], albumName }) {
   const handleRatingChange = (index, newRating) => {
     setTrackRatings((prevRatings) => ({
       ...prevRatings,
-      [index]: newRating, // Update only the specific track rating
+      [index]: newRating,
     }));
   };
 
@@ -27,26 +35,22 @@ function Tracks({ tracks = [], albumName }) {
         <h1>Sorry No Tracks</h1>
       ) : (
         tracks.map((track, index) => {
-          const trackDurationMinutes = Math.floor(track.duration / 60);
-          const trackDurationSeconds = track.duration % 60;
-          const isLessThanTenSec =
-            trackDurationSeconds < 10
-              ? `0${trackDurationSeconds}`
-              : trackDurationSeconds;
+          const durationMs = track.duration_ms;
+          const durationStr = formatDuration(durationMs);
 
           return (
             <div
               key={index}
-              className="track w-[500px] flex items-center justify-between p-3 transition-all relative hover:scale-110 "
+              className="track w-[500px] flex items-center justify-between p-3 transition-all relative hover:scale-110"
             >
               <div className="track-start">
                 <span className="track-number">{index + 1}.</span>
                 {track.name}
               </div>
-              <div className="track-end">
-                <span className="track-duration">{`${trackDurationMinutes}:${isLessThanTenSec}`}</span>
+              <div className="track-end flex items-center gap-2">
+                <span className="track-duration">{durationStr}</span>
                 <StarRate
-                  rating={trackRatings[index] || 0} // Default to 0 if not set
+                  rating={trackRatings[index] || 0}
                   setRating={(newRating) =>
                     handleRatingChange(index, newRating)
                   }

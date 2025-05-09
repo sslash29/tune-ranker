@@ -16,14 +16,14 @@ function AlbumTop100({
 
   const handleOnImgClick = () => {
     isAlbumSelected(true);
-    setAlbumData(album.albumData);
+    setAlbumData(album);
     navigate("/");
   };
 
   return (
     <div className="flex items-center gap-5">
       <img
-        src={album?.albumData?.images?.[1]?.url || ""}
+        src={album?.images?.[1]?.url || ""}
         alt="img"
         className="w-[174px] h-[174px] cursor-pointer"
         onDoubleClick={handleOnImgClick}
@@ -32,7 +32,7 @@ function AlbumTop100({
         className="text-2xl cursor-pointer"
         onClick={() => handleAlbumClick(index)}
       >
-        {album?.albumData?.name}
+        {album?.name}
       </li>
 
       {albumIndex === index && (

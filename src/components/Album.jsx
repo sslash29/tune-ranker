@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import StarRate from "./StarRate";
 import Tracks from "./Tracks";
 import supabase from "../supabaseClient";
@@ -12,13 +12,12 @@ function Album({
   setAlbumsMainPage,
   albumsMainPage,
 }) {
-  console.log(albumData);
   const [rating, setRating] = useState(0);
   const VITE_REACT_APP_API_KEY = import.meta.env.VITE_REACT_APP_API_KEY;
   const { user } = useContext(UserContext);
-  const AlbumId = albumData.uri.split(":")[2];
-
-  const { data, error } = useFetch(
+  const AlbumId = albumData?.uri.split(":")[2];
+  const artistId = albumData?.artists[0].id;
+  const { data } = useFetch(
     `https://localhost:5000/api/album-tracks?AlbumId=${encodeURIComponent(
       AlbumId
     )}`,
@@ -26,7 +25,17 @@ function Album({
       headers: undefined,
     }
   );
-  console.dir(data, error);
+
+  const { data: artistData } = useFetch(
+    `https://localhost:5000/api/artist-data?artistId=${encodeURIComponent(
+      artistId
+    )}`,
+    {
+      headers: undefined,
+    }
+  );
+
+  console.log(artistData);
 
   function formatPlayCount(count) {
     if (!count) return "N/A";
@@ -36,6 +45,23 @@ function Album({
       ? `${(num / 1_000_000_000).toFixed(1)}B`
       : `${(num / 1_000_000).toFixed(1)}M`;
   }
+
+  function getFormattedAlbumLength(tracks) {
+    if (!Array.isArray(tracks)) return "N/A";
+    const totalMs = tracks.reduce((sum, track) => sum + track.duration_ms, 0);
+    const totalSeconds = Math.floor(totalMs / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${seconds}s`;
+    } else {
+      return `${minutes}m ${seconds}s`;
+    }
+  }
+
+  const albumLength = getFormattedAlbumLength(data?.items);
 
   async function handleSave() {
     const newAlbum = {
@@ -88,18 +114,20 @@ function Album({
             className="w-[350px] h-[350px]"
           />
           <div className="bg-[#d9d9d9] w-[812px] h-[249px] p-2">
-            <div className="flex  justify-between w-full h-[40%] mt-2">
+            <div className="flex justify-between w-full h-[40%] mt-2">
               <div className="flex flex-col gap-1">
                 <h2 className="text-5xl">{albumData.name}</h2>
-                <p className="text-gray-500 translate-x-2">
-                  {albumData.artist}
-                </p>
+                {albumData.artists.map((artist) => (
+                  <p className="text-gray-500 translate-x-2" key={artist.id}>
+                    {artist.name}
+                  </p>
+                ))}
               </div>
-              <div className="flex flex-col gap-4  h-[230px]">
+              <div className="flex flex-col gap-4 h-[230px]">
                 <div className="flex flex-col text-xl gap-4 self-end">
-                  <p>Length: 1 hr</p>
+                  <p>Length: {albumLength}</p>
                   <p>Tracks: {albumData["total_tracks"] || "unknown"}</p>
-                  <p>Date: 2016</p>
+                  <p>Date: {albumData.release_date.split("-")[0]}</p>
                 </div>
               </div>
             </div>
@@ -108,21 +136,21 @@ function Album({
             </div>
 
             <div className="flex justify-between items-center mt-5">
-              <p className=" text-gray-500 text-xl">
-                spotify monthly listeners:{" "}
+              <p className="text-gray-500 text-xl">
+                spotify followers:
                 <span className="text-blue-400">
-                  {formatPlayCount(data?.album?.playcount)}
+                  {formatPlayCount(artistData?.followers?.total)}{" "}
                 </span>
               </p>
               <div className="flex justify-between w-[300px]">
                 <button
-                  className=" bg-blue-500 p-2.5 px-10 text-white rounded"
+                  className="bg-blue-500 p-2.5 px-10 text-white rounded"
                   onClick={handleSave}
                 >
                   Save
                 </button>
                 <button
-                  className=" bg-blue-500 p-2.5 px-10 text-white rounded"
+                  className="bg-blue-500 p-2.5 px-10 text-white rounded"
                   onClick={() => handleDelete(albumData.name)}
                 >
                   Delete
@@ -133,11 +161,11 @@ function Album({
         </div>
 
         <div className="flex w-full gap-10 mt-11 translate-x-16">
-          <div className=" ">
+          <div>
             <Tracks tracks={data?.items} albumName={albumData.name} />
           </div>
 
-          <div className="mt-4  flex flex-col items-center">
+          <div className="mt-4 flex flex-col items-center">
             <Tags tags={data?.album?.tags?.tag} />
             <p className="w-[792px] h-[392px]">{data?.album?.wiki?.summary}</p>
           </div>

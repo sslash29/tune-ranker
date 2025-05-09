@@ -8,6 +8,8 @@ services:
     environment:
       - ALBUM_RANKER_PASSWORD=7B9sVvk92DPxnjYF
       - VITE_ALBUM_RANKER_API_KEY=YOUR_API_KEY
+      - VITE_SUPABASE_URL=https://talmzswbtzwycpmgdfzb.supabase.co
+      - VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhbG16c3didHp3eWNwbWdkZnpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAxNTc2NjIsImV4cCI6MjA1NTczMzY2Mn0.KKXHeivhV4ggJpGd_9b6Puvah0nk7Pg9ovD2LgwTv2I
     ports:
       - 5173:5173
     volumes:

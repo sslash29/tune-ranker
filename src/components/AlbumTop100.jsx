@@ -23,7 +23,7 @@ function AlbumTop100({
   return (
     <div className="flex items-center gap-5">
       <img
-        src={album?.albumData?.image[2]["#text"]}
+        src={album?.albumData?.images?.[1]?.url || ""}
         alt="img"
         className="w-[174px] h-[174px] cursor-pointer"
         onDoubleClick={handleOnImgClick}

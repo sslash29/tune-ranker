@@ -3,17 +3,6 @@ import supabase from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
 
-async function sha256(message) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(message);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  return hashHex;
-}
-
 function isStrongPassword(pw) {
   return /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(pw);
 }
@@ -24,7 +13,7 @@ function Form() {
   const [message, setMessage] = useState("");
   const [attempts, setAttempts] = useState(0);
   const navigate = useNavigate();
-  const { setUser, isSignUp, setIsSignUp, user } = useContext(UserContext);
+  const { setUser, isSignUp, setIsSignUp } = useContext(UserContext);
 
   // **Login Function**
   const handleLogin = async (e) => {
@@ -138,7 +127,9 @@ function Form() {
         <p style={styles.switchText}>
           {isSignUp ? "Already have an account?" : "Don't have an account?"}
           <button
-            onClick={() => setIsSignUp(!isSignUp)}
+            onClick={() => {
+              setIsSignUp(!isSignUp);
+            }}
             style={styles.switchButton}
           >
             {isSignUp ? "Login" : "Sign Up"}

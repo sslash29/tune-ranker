@@ -2,14 +2,16 @@ import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../context/UserContext";
 import AlbumTop100 from "../components/AlbumTop100";
 import supabase from "../supabaseClient";
+import { useNavigate } from "react-router-dom";
 
 function Top100({ isAlbumSelected, setAlbumData }) {
   const [albumsPosition, setAlbumsPosition] = useState([]);
   const { top100, user, setUser } = useContext(UserContext);
   const [albumIndex, setAlbumIndex] = useState(null);
   const [edit, setEdit] = useState("");
-
+  const navigate = useNavigate();
   useEffect(() => {
+    if (Object.keys(top100).length === 0) navigate("/");
     if (top100) {
       setAlbumsPosition(top100);
     }

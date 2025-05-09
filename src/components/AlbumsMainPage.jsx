@@ -11,11 +11,11 @@ function AlbumsMainPage({ albumsMainPage, isAlbumSelected, setAlbumData }) {
       </p>
       <div className="albums-main-page">
         {albumsMainPage?.map((album, index) => {
-          const albumData = album.data || album.albumData; // Fallback to albumData if data is missing
+          const albumData = album.albumData; // <- correct path now
 
-          if (!albumData || !albumData.image) {
+          if (!albumData || !albumData.images) {
             console.warn("Album data is missing or incorrect:", album);
-            return null; // Skip rendering invalid albums
+            return null;
           }
 
           return (
@@ -24,7 +24,7 @@ function AlbumsMainPage({ albumsMainPage, isAlbumSelected, setAlbumData }) {
               className="album-main"
               onClick={() => handleAlbumClick(albumData)}
             >
-              <img src={albumData.image[3]?.["#text"] || ""} alt="album" />
+              <img src={albumData.images[1]?.url || ""} alt="album" />
               <h4>{album.rating}/5</h4>
             </div>
           );

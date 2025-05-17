@@ -24,7 +24,7 @@ export default defineConfig({
           cert: fs.readFileSync(certCrtPath),
         }
       : true,
-    host: "0.0.0.0",
+    host: "192.168.1.x",
     port: 5173,
     strictPort: true,
   },

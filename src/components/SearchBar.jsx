@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import useFetch from "../hooks/useFetch";
 import AlbumSearch from "./AlbumSearch";
 import { AlbumSearchContext } from "../context/AlbumSearchContext";

@@ -101,6 +101,3 @@ def get_artist_data():
     res = requests.get(url, headers=headers)
     print(res,flush=True)
     return jsonify(res.json()), res.status_code
-
-
-

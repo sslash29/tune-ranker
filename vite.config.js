@@ -24,10 +24,9 @@ export default defineConfig({
           cert: fs.readFileSync(certCrtPath),
         }
       : true,
-    host: "192.168.1.x",
+    host: "0.0.0.0",
     port: 5173,
     strictPort: true,
   },
 });
 
-//https:backend:5000/apiT/spotify-token

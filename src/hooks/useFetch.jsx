@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 const useFetch = (
-  url = "https://official-joke-api.appspot.com/random_joke",
+  url,
   options = {}
 ) => {
   const [data, setData] = useState(null);
@@ -13,7 +13,7 @@ const useFetch = (
     setLoading(true);
     const fetchData = async () => {
       try {
-        const data = await fetch(url);
+        const data = await fetch(url,options);
         const res = await data.json();
         setData(res);
       } catch (err) {

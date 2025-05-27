@@ -9,7 +9,8 @@ load_dotenv()
 # Create app
 app = Flask(__name__, static_folder="../frontend/dist", static_url_path="")
 app.register_blueprint(spotify_bp, url_prefix="/api")
-CORS(app, resources={r"/api/*": {"origins": "https://localhost:5173"}})
+CORS(app)
+
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve_react(path):

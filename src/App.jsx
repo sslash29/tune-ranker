@@ -13,10 +13,30 @@ import supabase from "./supabaseClient";
 function App() {
   const [albumSelected, isAlbumSelected] = useState(false);
   const [albumData, setAlbumData] = useState({});
-  const { setTop100, top100, setUser, user } = useContext(UserContext);
+  const { setTop100, top100, setUser, user, setSongs } = useContext(UserContext);
 
   const [albumsMainPage, setAlbumsMainPage] = useState([]);
 
+
+  useEffect(() => {
+    const ratedAlbums = {};
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.startsWith("tracksRated-")) {
+        const value = localStorage.getItem(key);
+        try {
+          ratedAlbums[key] = JSON.parse(value);
+        } catch (e) {
+          console.error(`Error parsing localStorage key: ${key}`, e);
+        }
+      }
+    }
+
+    setSongs(ratedAlbums);
+  }, [albumsMainPage]);
+
+  
   useEffect(() => {
     async function GetUser() {
       const storedSessionName = "sb-talmzswbtzwycpmgdfzb-auth-token";

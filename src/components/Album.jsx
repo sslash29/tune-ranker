@@ -12,8 +12,12 @@ function Album({
   setAlbumsMainPage,
   albumsMainPage,
 }) {
-  const [rating, setRating] = useState(0);
-  const { user } = useContext(UserContext);
+const [rating, setRating] = useState(() => {
+  const key = `albumRating-${albumData.name}`;
+  const stored = localStorage.getItem(key);
+  return stored ? JSON.parse(stored) : 0;
+});
+    const { user } = useContext(UserContext);
   const AlbumId = albumData?.uri.split(":")[2];
   const artistId = albumData?.artists[0].id;
   let artists = []
@@ -90,19 +94,29 @@ function Album({
     else console.log("Albums updated successfully.");
   }
 
-  async function handleDelete(name) {
-    const updatedAlbums = albumsMainPage.filter(
-      (album) => album.albumData.name !== name
-    );
+async function handleDelete(name, artists) {
+  const updatedAlbums = albumsMainPage.filter(
+    (album) => album.albumData.name !== name
+  );
 
-    const { error } = await supabase
-      .from("Accounts")
-      .update({ albums: updatedAlbums, top100: updatedAlbums })
-      .eq("id", user.id);
+  const artistNames = artists.map((artist) => artist.name);
+  const localStorageKey =
+    artistNames.length === 1
+      ? `tracksRated-${name}-${artistNames[0]}`
+      : `tracksRated-${name}-${artistNames.join(" & ")}`;
 
-    if (error) console.error("Error deleting album:", error);
-    isAlbumSelected(false);
-  }
+  localStorage.removeItem(localStorageKey);
+
+  const { error } = await supabase
+    .from("Accounts")
+    .update({ albums: updatedAlbums, top100: updatedAlbums })
+    .eq("id", user.id);
+
+  if (error) console.error("Error deleting album:", error);
+
+  isAlbumSelected(false);
+}
+
 
   return (
     <div className="p-7 flex flex-col gap-9">

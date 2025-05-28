@@ -2,10 +2,18 @@ import { useEffect, useState } from "react";
 import StarRate from "./StarRate";
 
 function Tracks({ tracks = [], albumName, artists = [] }) {
-  const [trackRatings, setTrackRatings] = useState(() => {
-    const storedValue = localStorage.getItem(`tracksRated-${albumName}`);
-    return storedValue ? JSON.parse(storedValue) : {};
-  });
+
+const [trackRatings, setTrackRatings] = useState(() => {
+  const artistNames = artists.map((artist) => artist.name);
+  const localStorageKey =
+    artistNames.length === 1
+      ? `tracksRated-${albumName}-${artistNames[0]}`
+      : `tracksRated-${albumName}-${artistNames.join(" & ")}`;
+  
+  const storedValue = localStorage.getItem(localStorageKey);
+  return storedValue ? JSON.parse(storedValue) : {};
+});
+
 
   const artistNames = artists.map(artist => artist.name)
   const localStorageArtistKeyStr = artistNames.length === 1 ? artistNames[0] : artistNames.join("&")
@@ -25,10 +33,10 @@ function Tracks({ tracks = [], albumName, artists = [] }) {
     );
   }, [trackRatings, albumName]);
 
-  const handleRatingChange = (index, newRating) => {
+  const handleRatingChange = (trackName, newRating) => {
     setTrackRatings((prevRatings) => ({
       ...prevRatings,
-      [index]: newRating,
+      [trackName]: newRating,
     }));
   };
 
@@ -53,9 +61,9 @@ function Tracks({ tracks = [], albumName, artists = [] }) {
               <div className="track-end flex items-center gap-2">
                 <span className="track-duration">{durationStr}</span>
                 <StarRate
-                  rating={trackRatings[index] || 0}
+                  rating={trackRatings[track.name] || 0}
                   setRating={(newRating) =>
-                    handleRatingChange(index, newRating)
+                    handleRatingChange(track.name, newRating)
                   }
                 />
               </div>

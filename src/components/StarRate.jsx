@@ -17,7 +17,7 @@ function StarRate({ rating, setRating, size }) {
 
   return (
     <div className="flex ">
-      {[...Array(5)].map((star, index) => {
+      {[...Array(5)].map((_, index) => {
         const fullValue = index + 1;
         const halfValue = index + 0.5;
         const isHalf = rating === halfValue;
@@ -37,7 +37,7 @@ function StarRate({ rating, setRating, size }) {
              then it does the else condition 
               */}
               {isHalf ? (
-                <FaStarHalfAlt color="black" />
+                <FaStarHalfAlt color="black"  />
               ) : (
                 <>
                   {/* on this condition it checks isFull if not it uses gray */}

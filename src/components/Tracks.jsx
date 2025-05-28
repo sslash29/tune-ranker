@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import StarRate from "./StarRate";
 
-function Tracks({ tracks = [], albumName }) {
+function Tracks({ tracks = [], albumName, artists = [] }) {
   const [trackRatings, setTrackRatings] = useState(() => {
     const storedValue = localStorage.getItem(`tracksRated-${albumName}`);
     return storedValue ? JSON.parse(storedValue) : {};
   });
+
+  const artistNames = artists.map(artist => artist.name)
+  const localStorageArtistKeyStr = artistNames.length === 1 ? artistNames[0] : artistNames.join("&")
 
   function formatDuration(ms) {
     const totalSeconds = Math.floor(ms / 1000);
@@ -17,7 +20,7 @@ function Tracks({ tracks = [], albumName }) {
 
   useEffect(() => {
     localStorage.setItem(
-      `tracksRated-${albumName}`,
+      `tracksRated-${albumName}-${localStorageArtistKeyStr}`,
       JSON.stringify(trackRatings)
     );
   }, [trackRatings, albumName]);

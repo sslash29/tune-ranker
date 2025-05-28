@@ -27,7 +27,7 @@ function Navbar({
         albumsMainPage={albumsMainPage}
       />
       <p className="pointer" onClick={() => handleTopAlbumsClick()}>
-        Top Ranking
+        Top Ranking 
       </p>
       <UserProfile />
     </nav>

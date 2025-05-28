@@ -13,10 +13,10 @@ function Album({
   albumsMainPage,
 }) {
   const [rating, setRating] = useState(0);
-  const VITE_REACT_APP_API_KEY = import.meta.env.VITE_REACT_APP_API_KEY;
   const { user } = useContext(UserContext);
   const AlbumId = albumData?.uri.split(":")[2];
   const artistId = albumData?.artists[0].id;
+  let artists = []
   const { data } = useFetch(
     `https://localhost:5000/api/album-tracks?AlbumId=${encodeURIComponent(
       AlbumId
@@ -35,7 +35,7 @@ function Album({
     }
   );
 
-  console.log(artistData);
+  console.log(data);
 
   function formatPlayCount(count) {
     if (!count) return "N/A";
@@ -117,11 +117,14 @@ function Album({
             <div className="flex justify-between w-full h-[40%] mt-2">
               <div className="flex flex-col gap-1">
                 <h2 className="text-5xl">{albumData.name}</h2>
-                {albumData.artists.map((artist) => (
+                {albumData.artists.map((artist) => {
+                  artists.push(artist)
+                  console.log(artists)
+                  return (
                   <p className="text-gray-500 translate-x-2" key={artist.id}>
                     {artist.name}
                   </p>
-                ))}
+                )})}
               </div>
               <div className="flex flex-col gap-4 h-[230px]">
                 <div className="flex flex-col text-xl gap-4 self-end">
@@ -162,7 +165,7 @@ function Album({
 
         <div className="flex w-full gap-10 mt-11 translate-x-16">
           <div>
-            <Tracks tracks={data?.items} albumName={albumData.name} />
+            <Tracks tracks={data?.items} albumName={albumData.name} artists={artists} />
           </div>
 
           <div className="mt-4 flex flex-col items-center">

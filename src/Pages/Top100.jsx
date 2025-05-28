@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import Album100 from "../components/Album100"; // import your component
+import TopSongs from "./TopSongs";
 
 function Top100({ isAlbumSelected, setAlbumData }) {
   const [albumsPosition, setAlbumsPosition] = useState([]);
@@ -37,6 +38,10 @@ function Top100({ isAlbumSelected, setAlbumData }) {
         </button>
       </div>
     );
+  }
+
+  if (activeSection === "songs") {
+    return <TopSongs />
   }
 
   return (

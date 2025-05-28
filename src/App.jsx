@@ -18,23 +18,27 @@ function App() {
   const [albumsMainPage, setAlbumsMainPage] = useState([]);
 
 
-  useEffect(() => {
-    const ratedAlbums = {};
+useEffect(() => {
+  const ratedAlbumsArray = [];
 
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key.startsWith("tracksRated-")) {
-        const value = localStorage.getItem(key);
-        try {
-          ratedAlbums[key] = JSON.parse(value);
-        } catch (e) {
-          console.error(`Error parsing localStorage key: ${key}`, e);
-        }
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith("tracksRated-")) {
+      const value = localStorage.getItem(key);
+      try {
+        const parsed = JSON.parse(value);
+        ratedAlbumsArray.push({
+          key,
+          data: parsed,
+        });
+      } catch (e) {
+        console.error(`Error parsing localStorage key: ${key}`, e);
       }
     }
+  }
 
-    setSongs(ratedAlbums);
-  }, [albumsMainPage]);
+  setSongs(ratedAlbumsArray);
+}, [albumsMainPage]);
 
   
   useEffect(() => {

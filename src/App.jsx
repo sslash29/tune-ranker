@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import HomePage from "./Pages/HomePage";
 import Account from "./Pages/Account";
@@ -14,33 +14,84 @@ function App() {
   const [albumSelected, isAlbumSelected] = useState(false);
   const [albumData, setAlbumData] = useState({});
   const { setTop100, top100, setUser, user, setSongs } = useContext(UserContext);
-
   const [albumsMainPage, setAlbumsMainPage] = useState([]);
+  const previousRatedAlbums = useRef([]);
 
+  useEffect(() => {
+    const ratedAlbumsArray = [];
 
-useEffect(() => {
-  const ratedAlbumsArray = [];
-
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key.startsWith("tracksRated-")) {
-      const value = localStorage.getItem(key);
-      try {
-        const parsed = JSON.parse(value);
-        ratedAlbumsArray.push({
-          key,
-          data: parsed,
-        });
-      } catch (e) {
-        console.error(`Error parsing localStorage key: ${key}`, e);
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.startsWith("tracksRated-")) {
+        const value = localStorage.getItem(key);
+        try {
+          const parsed = JSON.parse(value);
+          ratedAlbumsArray.push({ key, data: parsed });
+        } catch (e) {
+          console.error(`Error parsing localStorage key: ${key}`, e);
+        }
       }
     }
-  }
 
-  setSongs(ratedAlbumsArray);
-}, [albumsMainPage]);
+    setSongs(ratedAlbumsArray);
 
-  
+    const updateChangedSongs = async () => {
+      const prev = previousRatedAlbums.current;
+      const prevMap = Object.fromEntries(prev.map((item) => [item.key, item.data]));
+      const currentMap = Object.fromEntries(ratedAlbumsArray.map((item) => [item.key, item.data]));
+
+      const changesToUpdate = ratedAlbumsArray.filter(
+        (item) =>
+          !prevMap[item.key] || JSON.stringify(prevMap[item.key]) !== JSON.stringify(item.data)
+      );
+
+      const removedKeys = prev
+        .filter((item) => !currentMap[item.key])
+        .map((item) => item.key);
+
+      if (changesToUpdate.length === 0 && removedKeys.length === 0) return;
+
+      const { data, error } = await supabase
+        .from("Accounts")
+        .select("top100songs")
+        .eq("id", user.id)
+        .single();
+
+      if (error || !data) {
+        console.error("Error fetching top100songs before update:", error);
+        return;
+      }
+
+      let updatedTop100 = data.top100songs || [];
+
+      updatedTop100 = updatedTop100.filter(item => !removedKeys.includes(item.key));
+
+      changesToUpdate.forEach((change) => {
+        const existingIndex = updatedTop100.findIndex(item => item.key === change.key);
+        if (existingIndex !== -1) {
+          updatedTop100[existingIndex] = change;
+        } else {
+          updatedTop100.push(change);
+        }
+      });
+
+      const { error: updateError } = await supabase
+        .from("Accounts")
+        .update({ top100songs: updatedTop100 })
+        .eq("id", user.id);
+
+      if (updateError) {
+        console.error("Error updating top100songs:", updateError);
+      }
+
+      previousRatedAlbums.current = ratedAlbumsArray;
+    };
+
+    if (user?.id) {
+      updateChangedSongs();
+    }
+  }, [albumsMainPage, user?.id]);
+
   useEffect(() => {
     async function GetUser() {
       const storedSessionName = "sb-talmzswbtzwycpmgdfzb-auth-token";
@@ -53,7 +104,7 @@ useEffect(() => {
 
       if (error) {
         console.error("Error setting session:", error.message || error);
-        return; // Stop here on error
+        return;
       }
 
       const { user } = data;
@@ -66,11 +117,8 @@ useEffect(() => {
           .single();
 
         if (accountsError) {
-          console.error(
-            "Error fetching account data:",
-            accountsError.message || accountsError
-          );
-          return; // Stop here on error
+          console.error("Error fetching account data:", accountsError.message || accountsError);
+          return;
         }
 
         console.log("Accounts data:", accountsData);
@@ -78,10 +126,7 @@ useEffect(() => {
         setTop100(accountsData.top100);
         setAlbumsMainPage(accountsData.albums);
       } else {
-        console.warn(
-          "User object is missing after setSession.  This is unexpected."
-        );
-        //  Handle the case where user is null/undefined.  Perhaps redirect to login?
+        console.warn("User object is missing after setSession.");
       }
     }
 
@@ -110,6 +155,7 @@ useEffect(() => {
         }
       )
       .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
     };

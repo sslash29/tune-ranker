@@ -32,7 +32,7 @@ function Top100({ isAlbumSelected, setAlbumData }) {
         />
         <button
           onClick={() => setActiveSection(null)}
-          className="absolute right-10 bottom-5 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          className="fixed right-10 bottom-5 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
         >
           Back
         </button>

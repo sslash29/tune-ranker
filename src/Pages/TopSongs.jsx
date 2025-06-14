@@ -3,36 +3,25 @@ import { UserContext } from "../context/UserContext";
 import { FaStar, FaStarHalfAlt } from "react-icons/fa";
 import supabase from "../supabaseClient";
 
-// Helper: parse album name and artists from key
-function parseAlbumKey(albumKey) {
-  const cleanKey = albumKey.replace("tracksRated-", "");
-  const parts = cleanKey.split("-");
-
+// Helper: parse album and artist from albumInfo
+function parseAlbumInfo(albumInfo) {
+  const parts = albumInfo.split("-");
   if (parts.length === 2) {
-    return {
-      album: parts[0],
-      artists: [parts[1]],
-    };
+    return { album: parts[0], artists: parts[1].split("&") };
   }
-
   const artistPart = parts[parts.length - 1];
-  const albumName = parts.slice(0, parts.length - 1).join("-");
-
-  return {
-    album: albumName,
-    artists: artistPart.split("&"),
-  };
+  const album = parts.slice(0, parts.length - 1).join("-");
+  return { album, artists: artistPart.split("&") };
 }
 
-// Static star rating
+// Star rating
 function StaticStarRating({ rating }) {
   return (
     <div className="flex">
       {[...Array(5)].map((_, index) => {
-        const fullValue = index + 1;
-        const halfValue = index + 0.5;
-        const isHalf = rating === halfValue;
-        const isFull = rating >= fullValue;
+        const full = index + 1;
+        const isHalf = rating === index + 0.5;
+        const isFull = rating >= full;
 
         if (isHalf) {
           return <FaStarHalfAlt key={index} color="#2A75E4" size={20} />;
@@ -52,8 +41,10 @@ function StaticStarRating({ rating }) {
 }
 
 function TopSongs() {
-  const { songs, user } = useContext(UserContext);
+  const { user } = useContext(UserContext);
   const [ratedSongs, setRatedSongs] = useState([]);
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [newPosition, setNewPosition] = useState("");
 
   useEffect(() => {
     async function fetchTop100Songs() {
@@ -62,36 +53,23 @@ function TopSongs() {
         .select("top100songs")
         .eq("id", user.id);
 
-      if (error || !data || data.length === 0 || !data[0].top100songs) {
-        console.error("Error fetching songs or no data:", error);
+      if (error || !data || data.length === 0) {
+        console.error("Error fetching songs:", error);
         return;
       }
 
-      const finalData = data[0].top100songs.flatMap((song) => {
-        if (!song || typeof song.data !== "object" || song.data === null) return [];
-
-        return Object.entries(song.data).map(([name, rating]) => ({
-          name,
-          rating,
-          albumKey: song.key,
-        }));
-      });
-
-      setRatedSongs(finalData);
+      setRatedSongs(data[0].top100songs || []);
     }
 
     if (user?.id) {
       fetchTop100Songs();
     }
-  }, [user.id]);
-
-  const [selectedIndex, setSelectedIndex] = useState(null);
-  const [newPosition, setNewPosition] = useState("");
+  }, [user?.id]);
 
   const handleSubmitPosition = async (e) => {
     e.preventDefault();
-
     const pos = parseInt(newPosition, 10);
+
     if (isNaN(pos) || pos < 1 || pos > ratedSongs.length) return;
 
     const updated = [...ratedSongs];
@@ -100,26 +78,13 @@ function TopSongs() {
 
     setRatedSongs(updated);
 
-    // Convert back to grouped structure for supabase
-    const grouped = {};
-    updated.forEach(({ name, rating, albumKey }) => {
-      if (!grouped[albumKey]) grouped[albumKey] = {};
-      grouped[albumKey][name] = rating;
-    });
-
-    const finalGroupedArray = Object.entries(grouped).map(([key, data]) => ({
-      key,
-      data,
-    }));
-
     const { error } = await supabase
       .from("Accounts")
-      .update({ top100songs: finalGroupedArray })
+      .update({ top100songs: updated })
       .eq("id", user.id);
 
     if (error) {
-      console.error("Error updating top100:", error);
-      return;
+      console.error("Error updating position:", error);
     }
 
     setSelectedIndex(null);
@@ -131,7 +96,7 @@ function TopSongs() {
       {ratedSongs.length < 1 && <p>You haven't rated any songs yet</p>}
       <div className="flex flex-col gap-4">
         {ratedSongs.map((song, index) => {
-          const { album, artists } = parseAlbumKey(song.albumKey);
+          const { album, artists } = parseAlbumInfo(song.albumInfo);
           const isSelected = selectedIndex === index;
 
           return (
@@ -146,7 +111,7 @@ function TopSongs() {
               <div className="flex justify-between">
                 <div>
                   <p className="font-semibold text-lg">
-                    {index + 1}. {song.name}
+                    {index + 1}. {song.track}
                   </p>
                   <p className="text-sm text-gray-600">{album}</p>
                   <p className="text-sm text-gray-600">
@@ -157,10 +122,7 @@ function TopSongs() {
               </div>
 
               {isSelected && (
-                <form
-                  onSubmit={handleSubmitPosition}
-                  className="flex gap-4 mt-2"
-                >
+                <form onSubmit={handleSubmitPosition} className="flex gap-4 mt-2">
                   <input
                     type="number"
                     min="1"

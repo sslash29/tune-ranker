@@ -5,18 +5,20 @@ import { useNavigate } from "react-router-dom";
 function AlbumSearch({
   name,
   img,
+  favAlbumImg,
   artist,
   data,
   isAlbumSelected,
   setAlbumData,
+  onSelect,
 }) {
   const { setShouldFetch } = useContext(AlbumSearchContext);
   const navigate = useNavigate();
   function handleAlbumSearchClick() {
-    navigate("/");
     isAlbumSelected(true);
     setAlbumData(data);
     setShouldFetch(false);
+    onSelect?.({ name, favAlbumImg });
   }
   return (
     <div className="album-search" onClick={() => handleAlbumSearchClick()}>

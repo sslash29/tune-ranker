@@ -22,7 +22,7 @@ function SearchBar({ isAlbumSelected, setAlbumData }) {
   });
 
   const albumsData = data?.albums?.items || [];
-  console.dir(data);
+  if (data) console.dir(data);
 
   function submit() {
     if (value.trim()) {
@@ -42,13 +42,7 @@ function SearchBar({ isAlbumSelected, setAlbumData }) {
         }}
       />
       <button
-        style={{
-          padding: "7px 10px",
-          border: "none",
-          color: "white",
-          backgroundColor: "#3f3939",
-          cursor: "pointer",
-        }}
+        className="py-[7px] px-2.5 border-0 text-white bg-[#3f3939] cursor-pointer"
         onClick={submit}
       >
         Submit

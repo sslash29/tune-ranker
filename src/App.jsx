@@ -13,8 +13,9 @@ import supabase from "./supabaseClient";
 function App() {
   const [albumSelected, isAlbumSelected] = useState(false);
   const [albumData, setAlbumData] = useState({});
-  const { setTop100, top100, setUser, user, setSongs } = useContext(UserContext);
-  const [albumsMainPage, setAlbumsMainPage] = useState([]);
+  const { setTop100, top100, setUser, user, setSongs } =
+    useContext(UserContext);
+  const [albumsMainPage, setAlbumsMainPageState] = useState([]);
   const previousRatedAlbums = useRef(null);
 
   const extractTrackRatings = (albumArray) => {
@@ -65,6 +66,26 @@ function App() {
     return ratedAlbumsArray;
   };
 
+  const addAlbumsMainPage = (newAlbums) => {
+    setAlbumsMainPageState((prevAlbums) => {
+      const combinedAlbums = [...prevAlbums];
+      newAlbums.forEach((newAlbum) => {
+        if (
+          !combinedAlbums.find(
+            (album) => album.albumData.id === newAlbum.albumData.id
+          )
+        ) {
+          combinedAlbums.push(newAlbum);
+        }
+      });
+      return combinedAlbums;
+    });
+  };
+
+  const setAlbumsMainPageDirectly = (albumsArray) => {
+    setAlbumsMainPageState(albumsArray || []);
+  };
+
   useEffect(() => {
     const updateChangedSongs = async () => {
       const ratedAlbumsArray = getRatedAlbumsFromLocalStorage();
@@ -84,7 +105,9 @@ function App() {
           return;
         }
 
-        previousRatedAlbums.current = groupSupabaseTop100(data.top100songs || []);
+        previousRatedAlbums.current = groupSupabaseTop100(
+          data.top100songs || []
+        );
       }
 
       const prev = previousRatedAlbums.current.filter(
@@ -94,12 +117,17 @@ function App() {
         (item) => item.data && Object.keys(item.data).length > 0
       );
 
-      const prevMap = Object.fromEntries(prev.map((item) => [item.key, item.data]));
-      const currentMap = Object.fromEntries(current.map((item) => [item.key, item.data]));
+      const prevMap = Object.fromEntries(
+        prev.map((item) => [item.key, item.data])
+      );
+      const currentMap = Object.fromEntries(
+        current.map((item) => [item.key, item.data])
+      );
 
       const changesToUpdate = current.filter(
         (item) =>
-          !prevMap[item.key] || JSON.stringify(prevMap[item.key]) !== JSON.stringify(item.data)
+          !prevMap[item.key] ||
+          JSON.stringify(prevMap[item.key]) !== JSON.stringify(item.data)
       );
 
       const removedKeys = prev
@@ -145,7 +173,7 @@ function App() {
       if (updateError) {
         console.error("Error updating top100songs:", updateError);
       } else {
-        previousRatedAlbums.current = current;
+        previousRatedAlbums.current = groupSupabaseTop100(merged);
       }
     };
 
@@ -158,7 +186,9 @@ function App() {
       const storedSession = localStorage.getItem(storedSessionName);
       if (!storedSession) return;
 
-      const { data, error } = await supabase.auth.setSession(JSON.parse(storedSession));
+      const { data, error } = await supabase.auth.setSession(
+        JSON.parse(storedSession)
+      );
 
       if (error) {
         console.error("Error setting session:", error.message || error);
@@ -175,13 +205,16 @@ function App() {
           .single();
 
         if (accountsError) {
-          console.error("Error fetching account data:", accountsError.message || accountsError);
+          console.error(
+            "Error fetching account data:",
+            accountsError.message || accountsError
+          );
           return;
         }
 
         setUser({ aud: user.aud, ...accountsData });
         setTop100(accountsData.top100);
-        setAlbumsMainPage(accountsData.albums);
+        setAlbumsMainPageDirectly(accountsData.albums || []);
       } else {
         console.warn("User object is missing after setSession.");
       }
@@ -206,7 +239,7 @@ function App() {
             setTop100(payload.new.top100);
           }
           if (payload.new?.albums) {
-            setAlbumsMainPage(payload.new.albums);
+            setAlbumsMainPageDirectly(payload.new.albums);
           }
         }
       )
@@ -224,7 +257,7 @@ function App() {
           <Navbar
             isAlbumSelected={isAlbumSelected}
             setAlbumData={setAlbumData}
-            setAlbumsMainPage={setAlbumsMainPage}
+            setAlbumsMainPage={addAlbumsMainPage}
             albumsMainPage={albumsMainPage}
           />
           <Routes>
@@ -236,7 +269,7 @@ function App() {
                   isAlbumSelected={isAlbumSelected}
                   setAlbumData={setAlbumData}
                   albumSelected={albumSelected}
-                  setAlbumsMainPage={setAlbumsMainPage}
+                  setAlbumsMainPage={addAlbumsMainPage}
                   albumsMainPage={albumsMainPage}
                 />
               }

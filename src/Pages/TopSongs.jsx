@@ -41,10 +41,11 @@ function StaticStarRating({ rating }) {
 }
 
 function TopSongs() {
-  const { user } = useContext(UserContext);
+  const { user, top100 } = useContext(UserContext);
   const [ratedSongs, setRatedSongs] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [newPosition, setNewPosition] = useState("");
+  const albumsRated = Object.keys(top100).length;
 
   useEffect(() => {
     async function fetchTop100Songs() {
@@ -122,7 +123,10 @@ function TopSongs() {
               </div>
 
               {isSelected && (
-                <form onSubmit={handleSubmitPosition} className="flex gap-4 mt-2">
+                <form
+                  onSubmit={handleSubmitPosition}
+                  className="flex gap-4 mt-2"
+                >
                   <input
                     type="number"
                     min="1"

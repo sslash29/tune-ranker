@@ -12,34 +12,30 @@ function Album({
   setAlbumsMainPage,
   albumsMainPage,
 }) {
-const [rating, setRating] = useState(() => {
-  const key = `albumRating-${albumData.name}`;
-  const stored = localStorage.getItem(key);
-  return stored ? JSON.parse(stored) : 0;
-});
-    const { user } = useContext(UserContext);
+  const [rating, setRating] = useState(() => {
+    const key = `albumRating-${albumData.name}`;
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : 0;
+  });
+
+  const { user } = useContext(UserContext);
   const AlbumId = albumData?.uri.split(":")[2];
   const artistId = albumData?.artists[0].id;
-  let artists = []
+  let artists = [];
+
   const { data } = useFetch(
     `https://localhost:5000/api/album-tracks?AlbumId=${encodeURIComponent(
       AlbumId
     )}`,
-    {
-      headers: undefined,
-    }
+    { headers: undefined }
   );
 
   const { data: artistData } = useFetch(
     `https://localhost:5000/api/artist-data?artistId=${encodeURIComponent(
       artistId
     )}`,
-    {
-      headers: undefined,
-    }
+    { headers: undefined }
   );
-
-  console.log(data);
 
   function formatPlayCount(count) {
     if (!count) return "N/A";
@@ -68,6 +64,9 @@ const [rating, setRating] = useState(() => {
   const albumLength = getFormattedAlbumLength(data?.items);
 
   async function handleSave() {
+    const key = `albumRating-${albumData.name}`;
+    localStorage.setItem(key, JSON.stringify(rating)); // ✅ Save rating locally
+
     const newAlbum = {
       rating,
       albumData,
@@ -85,38 +84,95 @@ const [rating, setRating] = useState(() => {
 
     setAlbumsMainPage(updatedAlbums);
 
-    const { error } = await supabase
+    // ✅ Fetch existing top100 from DB
+    const { data: userData, error: fetchError } = await supabase
       .from("Accounts")
-      .update({ albums: updatedAlbums, top100: updatedAlbums })
+      .select("top100")
+      .eq("id", user.id)
+      .single();
+
+    if (fetchError) {
+      console.error("Error fetching top100 albums:", fetchError);
+      return;
+    }
+
+    const currentTop100 = userData?.top100 || [];
+
+    const updatedTop100Albums = [
+      ...currentTop100.filter(
+        (album) => (album.data || album.albumData)?.name !== albumData.name
+      ),
+      newAlbum,
+    ];
+
+    // ✅ Update albums
+    const { error: albumsError } = await supabase
+      .from("Accounts")
+      .update({ albums: updatedAlbums })
       .eq("id", user.id);
 
-    if (error) console.error("Error updating albums:", error);
-    else console.log("Albums updated successfully.");
+    // ✅ Update top100
+    const { error: top100Error } = await supabase
+      .from("Accounts")
+      .update({ top100: updatedTop100Albums })
+      .eq("id", user.id);
+
+    if (albumsError) console.error("Error updating albums:", albumsError);
+    if (top100Error) console.error("Error updating top100:", top100Error);
+    if (!albumsError && !top100Error) console.log("Albums saved successfully");
   }
+  async function handleDelete(name, artists) {
+    // Remove album from local albums
+    const updatedAlbums = albumsMainPage.filter(
+      (album) => album.albumData.name !== name
+    );
 
-async function handleDelete(name, artists) {
-  const updatedAlbums = albumsMainPage.filter(
-    (album) => album.albumData.name !== name
-  );
+    // Remove localStorage keys
+    const artistNames = artists.map((artist) => artist.name);
+    const localStorageTrackKey =
+      artistNames.length === 1
+        ? `tracksRated-${name}-${artistNames[0]}`
+        : `tracksRated-${name}-${artistNames.join(" & ")}`;
+    const localStorageAlbumKey = `albumRating-${name}`;
+    localStorage.removeItem(localStorageTrackKey);
+    localStorage.removeItem(localStorageAlbumKey);
 
-  const artistNames = artists.map((artist) => artist.name);
-  const localStorageKey =
-    artistNames.length === 1
-      ? `tracksRated-${name}-${artistNames[0]}`
-      : `tracksRated-${name}-${artistNames.join(" & ")}`;
+    // ✅ Fetch current top100 from DB
+    const { data: userData, error: fetchError } = await supabase
+      .from("Accounts")
+      .select("top100")
+      .eq("id", user.id)
+      .single();
 
-  localStorage.removeItem(localStorageKey);
+    if (fetchError) {
+      console.error("Error fetching top100 for deletion:", fetchError);
+      return;
+    }
 
-  const { error } = await supabase
-    .from("Accounts")
-    .update({ albums: updatedAlbums, top100: updatedAlbums })
-    .eq("id", user.id);
+    const currentTop100 = userData?.top100 || [];
 
-  if (error) console.error("Error deleting album:", error);
+    // ✅ Filter the album out of top100 too
+    const updatedTop100 = currentTop100.filter(
+      (album) => (album.data || album.albumData)?.name !== name
+    );
 
-  isAlbumSelected(false);
-}
+    // ✅ Update Supabase
+    const { error: updateError } = await supabase
+      .from("Accounts")
+      .update({
+        albums: updatedAlbums,
+        top100: updatedTop100,
+      })
+      .eq("id", user.id);
 
+    if (updateError) {
+      console.error("Error updating after delete:", updateError);
+    } else {
+      console.log("Album deleted successfully");
+    }
+
+    isAlbumSelected(false);
+  }
 
   return (
     <div className="p-7 flex flex-col gap-9">
@@ -132,13 +188,13 @@ async function handleDelete(name, artists) {
               <div className="flex flex-col gap-1">
                 <h2 className="text-5xl">{albumData.name}</h2>
                 {albumData.artists.map((artist) => {
-                  artists.push(artist)
-                  console.log(artists)
+                  artists.push(artist);
                   return (
-                  <p className="text-gray-500 translate-x-2" key={artist.id}>
-                    {artist.name}
-                  </p>
-                )})}
+                    <p className="text-gray-500 translate-x-2" key={artist.id}>
+                      {artist.name}
+                    </p>
+                  );
+                })}
               </div>
               <div className="flex flex-col gap-4 h-[230px]">
                 <div className="flex flex-col text-xl gap-4 self-end">
@@ -168,7 +224,9 @@ async function handleDelete(name, artists) {
                 </button>
                 <button
                   className="bg-blue-500 p-2.5 px-10 text-white rounded"
-                  onClick={() => handleDelete(albumData.name)}
+                  onClick={() =>
+                    handleDelete(albumData.name, albumData.artists)
+                  }
                 >
                   Delete
                 </button>
@@ -179,7 +237,11 @@ async function handleDelete(name, artists) {
 
         <div className="flex w-full gap-10 mt-11 translate-x-16">
           <div>
-            <Tracks tracks={data?.items} albumName={albumData.name} artists={artists} />
+            <Tracks
+              tracks={data?.items}
+              albumName={albumData.name}
+              artists={artists}
+            />
           </div>
 
           <div className="mt-4 flex flex-col items-center">

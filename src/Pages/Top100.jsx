@@ -11,14 +11,17 @@ function Top100({ isAlbumSelected, setAlbumData }) {
   const [activeSection, setActiveSection] = useState(null); // 'albums' | 'songs' | 'artists'
 
   useEffect(() => {
-    if (Object.keys(top100).length === 0) navigate("/");
-    if (top100) {
-      setAlbumsPosition(top100 || []);
+    if (top100 && Object.keys(top100).length > 0) {
+      setAlbumsPosition(top100);
     }
   }, [top100]);
 
   // Render the album list component when "Top 100 Albums" is clicked
   if (activeSection === "albums") {
+    if (!albumsPosition || albumsPosition.length === 0) {
+      return <p className="p-5 text-xl">You have to add albums first</p>;
+    }
+
     return (
       <div className="p-5">
         <h2 className="text-3xl font-bold mb-4">Top 100 Albums</h2>
@@ -41,7 +44,7 @@ function Top100({ isAlbumSelected, setAlbumData }) {
   }
 
   if (activeSection === "songs") {
-    return <TopSongs />
+    return <TopSongs />;
   }
 
   return (

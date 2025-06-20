@@ -8,7 +8,7 @@ import RecentActivity from "../components/RecentActivit";
 // 🔹 Helper: Count unique artist names
 const getUniqueArtistCount = (albums) => {
   const artistNames = albums.map((album) =>
-    album.albumData?.name?.toLowerCase().trim()
+    album.albumData?.artists?.[0]?.name?.toLowerCase().trim()
   );
   const uniqueArtists = new Set(artistNames.filter(Boolean));
   return uniqueArtists.size;

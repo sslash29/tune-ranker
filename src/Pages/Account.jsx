@@ -5,6 +5,15 @@ import { UserContext } from "../context/UserContext";
 import FavoriteAlbums from "../components/FavoriteAlbums";
 import RecentActivity from "../components/RecentActivit";
 
+// 🔹 Helper: Count unique artist names
+const getUniqueArtistCount = (albums) => {
+  const artistNames = albums.map((album) =>
+    album.albumData?.name?.toLowerCase().trim()
+  );
+  const uniqueArtists = new Set(artistNames.filter(Boolean));
+  return uniqueArtists.size;
+};
+
 function Account() {
   const navigate = useNavigate();
   const [editMode, setEditMode] = useState(false);
@@ -17,6 +26,7 @@ function Account() {
   const [formData, setFormData] = useState({ ...userData });
   const [error, setError] = useState("");
   const [albumsThisYear, setAlbumsThisYear] = useState(0);
+  const [uniqueArtists, setUniqueArtists] = useState(0);
   const { user, top100 } = useContext(UserContext);
   const albumsRated = Object.keys(top100).length;
 
@@ -54,7 +64,8 @@ function Account() {
     }
   };
 
-  const getAlbumsThisYear = async () => {
+  // 🔹 Fetch stats for this year + unique artists
+  const getAlbumStats = async () => {
     const currentYear = new Date().getFullYear();
     const yearStart = new Date(currentYear, 0, 1).getTime();
 
@@ -70,8 +81,12 @@ function Account() {
     }
 
     const albums = data.albums || [];
+
     const albumsThisYear = albums.filter((album) => album.addedAt >= yearStart);
     setAlbumsThisYear(albumsThisYear.length);
+
+    const uniqueArtistCount = getUniqueArtistCount(albums);
+    setUniqueArtists(uniqueArtistCount);
   };
 
   const handleUpdate = async () => {
@@ -100,7 +115,7 @@ function Account() {
 
   useEffect(() => {
     fetchUserData();
-    getAlbumsThisYear();
+    getAlbumStats();
   }, [user?.id]);
 
   return (
@@ -138,7 +153,7 @@ function Account() {
                   <p className="text-xs font-light">This year</p>
                 </div>
                 <div className="flex flex-col items-center">
-                  <p className="text-lg font-semibold">84</p>
+                  <p className="text-lg font-semibold">{uniqueArtists}</p>
                   <p className="text-xs font-light">Artists</p>
                 </div>
               </div>

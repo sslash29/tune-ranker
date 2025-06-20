@@ -16,6 +16,7 @@ function Account() {
   });
   const [formData, setFormData] = useState({ ...userData });
   const [error, setError] = useState("");
+  const [albumsThisYear, setAlbumsThisYear] = useState(0);
   const { user, top100 } = useContext(UserContext);
   const albumsRated = Object.keys(top100).length;
 
@@ -53,6 +54,26 @@ function Account() {
     }
   };
 
+  const getAlbumsThisYear = async () => {
+    const currentYear = new Date().getFullYear();
+    const yearStart = new Date(currentYear, 0, 1).getTime();
+
+    const { data, error } = await supabase
+      .from("Accounts")
+      .select("albums")
+      .eq("id", user.id)
+      .single();
+
+    if (error) {
+      console.error("Error fetching albums:", error);
+      return;
+    }
+
+    const albums = data.albums || [];
+    const albumsThisYear = albums.filter((album) => album.addedAt >= yearStart);
+    setAlbumsThisYear(albumsThisYear.length);
+  };
+
   const handleUpdate = async () => {
     setError("");
 
@@ -79,7 +100,8 @@ function Account() {
 
   useEffect(() => {
     fetchUserData();
-  }, []);
+    getAlbumsThisYear();
+  }, [user?.id]);
 
   return (
     <>
@@ -109,10 +131,10 @@ function Account() {
               <div className="flex gap-4">
                 <div className="flex flex-col items-center">
                   <p className="text-lg font-semibold">{albumsRated}</p>
-                  <p className=" text-xs font-light">Albums</p>
+                  <p className="text-xs font-light">Albums</p>
                 </div>
                 <div className="flex flex-col items-center">
-                  <p className="text-lg font-semibold">24</p>
+                  <p className="text-lg font-semibold">{albumsThisYear}</p>
                   <p className="text-xs font-light">This year</p>
                 </div>
                 <div className="flex flex-col items-center">

@@ -41,11 +41,10 @@ function StaticStarRating({ rating }) {
 }
 
 function TopSongs() {
-  const { user, top100 } = useContext(UserContext);
+  const { user } = useContext(UserContext);
   const [ratedSongs, setRatedSongs] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [newPosition, setNewPosition] = useState("");
-  const albumsRated = Object.keys(top100).length;
 
   useEffect(() => {
     async function fetchTop100Songs() {

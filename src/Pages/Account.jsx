@@ -2,8 +2,8 @@ import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../supabaseClient";
 import { UserContext } from "../context/UserContext";
-import AlbumFavorites from "../components/AlbumFavorites";
 import FavoriteAlbums from "../components/FavoriteAlbums";
+import RecentActivity from "../components/RecentActivit";
 
 function Account() {
   const navigate = useNavigate();
@@ -178,7 +178,11 @@ function Account() {
         </div>
 
         <div className="mt-10">
-          <FavoriteAlbums />
+          <FavoriteAlbums editMode={editMode} />
+        </div>
+
+        <div className="mt-10">
+          <RecentActivity />
         </div>
 
         <div className="mt-16 flex gap-4">

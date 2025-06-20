@@ -7,11 +7,22 @@ function UserProvider({ children }) {
   const [top100, setTop100] = useState({});
   const [isSignUp, setIsSignUp] = useState(false);
   const [songs, setSongs] = useState({});
-
+  const [recentAlbums, setRecentAlbums] = useState([]);
 
   return (
     <UserContext.Provider
-      value={{ user, setUser, top100, setTop100, isSignUp, setIsSignUp, songs, setSongs  }}
+      value={{
+        user,
+        setUser,
+        top100,
+        setTop100,
+        isSignUp,
+        setIsSignUp,
+        songs,
+        setSongs,
+        recentAlbums,
+        setRecentAlbums,
+      }}
     >
       {children}
     </UserContext.Provider>

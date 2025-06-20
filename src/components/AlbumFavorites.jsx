@@ -1,19 +1,68 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { FaCirclePlus } from "react-icons/fa6";
 import { AlbumSearchContext } from "../context/AlbumSearchContext";
 import SearchAlbumFav from "./SearchAlbumFav";
+import supabase from "../supabaseClient";
+import { UserContext } from "../context/UserContext";
 
-function AlbumFavorites() {
+function AlbumFavorites({ name, image, editMode }) {
   const [isSearch, setIsSearch] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const { token } = useContext(AlbumSearchContext);
+  const { user } = useContext(UserContext);
 
-  const handleAddAlbum = () => setIsSearch(true);
+  const handleAddAlbum = async () => {
+    if (!image) setIsSearch(true);
+    if (editMode) {
+      const { data } = await supabase
+        .from("Accounts")
+        .select("favoritealbumsprofile")
+        .eq("id", user.id);
+      const updatedFavAlbums = data[0].favoritealbumsprofile.filter(
+        (album) => album.name !== name && album.image !== image
+      );
+      const { error } = await supabase
+        .from("Accounts")
+        .update({ favoritealbumsprofile: updatedFavAlbums })
+        .eq("id", user.id);
+      setIsSearch(true);
+    }
+  };
   const handleClose = () => setIsSearch(false);
 
-  const handleAlbumSelect = (album) => {
+  const handleAlbumSelect = async (album) => {
     setSelectedAlbum(album);
     setIsSearch(false);
+
+    const { data, error } = await supabase
+      .from("Accounts")
+      .select("favoritealbumsprofile")
+      .eq("id", user.id)
+      .single();
+
+    if (error) {
+      console.error("Fetch error:", error);
+      return;
+    }
+
+    let existingFavorites = data.favoritealbumsprofile;
+
+    if (!Array.isArray(existingFavorites)) {
+      existingFavorites = [];
+    }
+
+    const updatedFavorites = [...existingFavorites, album];
+
+    const { error: updateError } = await supabase
+      .from("Accounts")
+      .update({ favoritealbumsprofile: updatedFavorites })
+      .eq("id", user.id);
+
+    if (updateError) {
+      console.error("Update error:", updateError);
+    } else {
+      console.log("Updated favorites:", updatedFavorites);
+    }
   };
 
   return (
@@ -27,6 +76,12 @@ function AlbumFavorites() {
           <img
             src={selectedAlbum.favAlbumImg}
             alt={selectedAlbum.name}
+            className="w-full h-full object-cover rounded-xl"
+          />
+        ) : image ? (
+          <img
+            src={image}
+            alt={name}
             className="w-full h-full object-cover rounded-xl"
           />
         ) : (

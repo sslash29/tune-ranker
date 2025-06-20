@@ -1,36 +1,56 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
+import supabase from "../supabaseClient";
+import { UserContext } from "../context/UserContext";
 
 function FilterAlbums({ setAlbumsMainPage, albumsMainPage }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isActive, setIsActive] = useState("high");
+  const { user } = useContext(UserContext);
 
-  function HighestRated() {
+  async function HighestRated() {
     // Create a new sorted array without mutating state directly
     const highestRated = [...albumsMainPage].sort(
       (a, b) => b.rating - a.rating
     );
-
-    setAlbumsMainPage(highestRated);
+    const { _ } = await supabase
+      .from("Accounts")
+      .update({ albums: highestRated })
+      .eq("id", user.id);
     setIsActive("high");
   }
 
-  function LowestRated() {
+  async function LowestRated() {
     // Create a new sorted array without mutating state directly
-    const lowestRated = [...albumsMainPage].sort((a, b) => a.rating - b.rating);
+    const lowestRated = [...albumsMainPage].sort((a, b) => {
+      console.log(a, b);
+      return a.rating - b.rating;
+    });
 
     setAlbumsMainPage(lowestRated);
+    const { _ } = await supabase
+      .from("Accounts")
+      .update({ albums: lowestRated })
+      .eq("id", user.id);
     setIsActive("low");
   }
 
-  function NewestAdded() {
+  async function NewestAdded() {
     const newest = [...albumsMainPage].sort((a, b) => b.addedAt - a.addedAt);
     setAlbumsMainPage(newest);
+    const { _ } = await supabase
+      .from("Accounts")
+      .update({ albums: newest })
+      .eq("id", user.id);
     setIsActive("new");
   }
 
-  function OldestAdded() {
+  async function OldestAdded() {
     const oldest = [...albumsMainPage].sort((a, b) => a.addedAt - b.addedAt);
     setAlbumsMainPage(oldest);
+    const { _ } = await supabase
+      .from("Accounts")
+      .update({ albums: oldest })
+      .eq("id", user.id);
     setIsActive("old");
   }
 

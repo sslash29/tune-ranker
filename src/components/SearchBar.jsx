@@ -22,7 +22,6 @@ function SearchBar({ isAlbumSelected, setAlbumData }) {
   });
 
   const albumsData = data?.albums?.items || [];
-  if (data) console.dir(data);
 
   function submit() {
     if (value.trim()) {

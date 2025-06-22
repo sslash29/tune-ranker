@@ -16,7 +16,7 @@ function Navbar({
     navigate("/top100");
   };
   return (
-    <nav>
+    <nav className="bg-[#191919] text-white">
       <Logo isAlbumSelected={isAlbumSelected} />
       <SearchBar
         isAlbumSelected={isAlbumSelected}
@@ -27,7 +27,7 @@ function Navbar({
         albumsMainPage={albumsMainPage}
       />
       <p className="pointer" onClick={() => handleTopAlbumsClick()}>
-        Top Ranking 
+        Top Ranking
       </p>
       <UserProfile />
     </nav>

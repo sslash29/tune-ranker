@@ -101,3 +101,15 @@ def get_artist_data():
     res = requests.get(url, headers=headers)
     print(res,flush=True)
     return jsonify(res.json()), res.status_code
+
+@spotify_bp.route('/artist-genre')
+def get_artist_genre():
+    artist_id = request.args.get("artistId")
+    token = get_spotify_access_token()
+    if not token:
+        return jsonify({"error": "Failed to get token"}), 500    
+    headers = {"Authorization": f"Bearer {token}"}
+    url = f"https://api.spotify.com/v1/artists/{artist_id}"
+    res = requests.get(url, headers=headers)
+    print(res,flush=True)
+    return jsonify(res.json()), res.status_code

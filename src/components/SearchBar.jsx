@@ -30,7 +30,7 @@ function SearchBar({ isAlbumSelected, setAlbumData }) {
   }
 
   return (
-    <div id="searchbar-container">
+    <div className="bg-[#191919] text-white">
       <input
         id="searchbar"
         placeholder="Search..."

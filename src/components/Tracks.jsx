@@ -1,22 +1,27 @@
 import { useEffect, useState } from "react";
-import StarRate from "./StarRate";
 
 function Tracks({ tracks = [], albumName, artists = [] }) {
+  const [trackRatings, setTrackRatings] = useState(() => {
+    const artistNames = artists.map((artist) => artist.name);
+    const localStorageKey =
+      artistNames.length === 1
+        ? `tracksRated-${albumName}-${artistNames[0]}`
+        : `tracksRated-${albumName}-${artistNames.join(" & ")}`;
 
-const [trackRatings, setTrackRatings] = useState(() => {
+    const storedValue = localStorage.getItem(localStorageKey);
+    return storedValue ? JSON.parse(storedValue) : {};
+  });
+
   const artistNames = artists.map((artist) => artist.name);
-  const localStorageKey =
-    artistNames.length === 1
-      ? `tracksRated-${albumName}-${artistNames[0]}`
-      : `tracksRated-${albumName}-${artistNames.join(" & ")}`;
-  
-  const storedValue = localStorage.getItem(localStorageKey);
-  return storedValue ? JSON.parse(storedValue) : {};
-});
+  const localStorageArtistKeyStr =
+    artistNames.length === 1 ? artistNames[0] : artistNames.join("&");
 
-
-  const artistNames = artists.map(artist => artist.name)
-  const localStorageArtistKeyStr = artistNames.length === 1 ? artistNames[0] : artistNames.join("&")
+  useEffect(() => {
+    localStorage.setItem(
+      `tracksRated-${albumName}-${localStorageArtistKeyStr}`,
+      JSON.stringify(trackRatings)
+    );
+  }, [trackRatings, albumName]);
 
   function formatDuration(ms) {
     const totalSeconds = Math.floor(ms / 1000);
@@ -26,47 +31,25 @@ const [trackRatings, setTrackRatings] = useState(() => {
     return `${minutes}:${paddedSeconds}`;
   }
 
-  useEffect(() => {
-    localStorage.setItem(
-      `tracksRated-${albumName}-${localStorageArtistKeyStr}`,
-      JSON.stringify(trackRatings)
-    );
-  }, [trackRatings, albumName]);
-
-  const handleRatingChange = (trackName, newRating) => {
-    setTrackRatings((prevRatings) => ({
-      ...prevRatings,
-      [trackName]: newRating,
-    }));
-  };
-
   return (
-    <div className="flex flex-col g-3">
+    <div className="flex flex-col h-[495px] overflow-y-auto ">
       {tracks.length === 0 ? (
         <h1>Sorry No Tracks</h1>
       ) : (
         tracks.map((track, index) => {
           const durationMs = track.duration_ms;
           const durationStr = formatDuration(durationMs);
-
           return (
             <div
               key={index}
-              className="track w-[500px] flex items-center justify-between p-3 transition-all relative hover:scale-110"
+              className="track w-[650px] flex items-center justify-between p-3"
             >
-              <div className="track-start">
-                <span className="track-number">{index + 1}.</span>
+              <div className="text-xl opacity-90 w-[500px]">
+                <span className="track-number mr-2.5">{index + 1}</span>
                 {track.name}
               </div>
-              <div className="track-end flex items-center gap-2">
-                <span className="track-duration">{durationStr}</span>
-                <StarRate
-                  rating={trackRatings[track.name] || 0}
-                  setRating={(newRating) =>
-                    handleRatingChange(track.name, newRating)
-                  }
-                />
-              </div>
+              <img src="Pipe.svg" alt="pipe" />
+              <span className="w-[42px]">{durationStr}</span>
             </div>
           );
         })

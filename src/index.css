@@ -147,35 +147,6 @@ input[type="radio"] {
   cursor: pointer;
 }
 
-.track::before {
-  content: "";
-  position: absolute;
-  background-color: #2ae462;
-  width: 10px;
-  height: 24px;
-  border-radius: 5px 0 0 5px;
-  transform: translateX(-18px);
-  transition: background-color 0.3s ease; /* optional smooth transition */
-}
-
-.track:hover::before {
-  background-color: gray; /* this changes ::before background on hover */
-}
-
-.track-number {
-  margin-right: 10px;
-}
-
-.track-duration {
-  align-self: center;
-}
-
-.track-end {
-  display: flex;
-  justify-content: space-between;
-  width: 40%;
-}
-
 .login-container {
   display: flex;
   justify-content: center;

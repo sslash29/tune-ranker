@@ -4,6 +4,7 @@ import supabase from "../supabaseClient";
 import { UserContext } from "../context/UserContext";
 import useFetch from "../hooks/useFetch";
 import capitalizeWords from "../helpers/capatalize";
+import AlbumLog from "./AlbumLog";
 
 function Album({
   albumData,
@@ -16,7 +17,8 @@ function Album({
     const stored = localStorage.getItem(key);
     return stored ? JSON.parse(stored) : 0;
   });
-
+  const [albumClick, setAlbumClick] = useState(false);
+  const [isAlbumLog, setIsAlbumLog] = useState(false);
   const { user } = useContext(UserContext);
   const AlbumId = albumData?.uri.split(":")[2];
   const artistId = albumData?.artists[0].id;
@@ -70,124 +72,27 @@ function Album({
 
   const albumLength = getFormattedAlbumLength(data?.items);
 
-  async function handleSave() {
-    const key = `albumRating-${albumData.name}`;
-    localStorage.setItem(key, JSON.stringify(rating)); // ✅ Save rating locally
-
-    const newAlbum = {
-      rating,
-      albumData,
-      addedAt: Date.now(),
-    };
-
-    isAlbumSelected(false);
-
-    const updatedAlbums = [
-      ...albumsMainPage.filter(
-        (album) => (album.data || album.albumData)?.name !== albumData.name
-      ),
-      newAlbum,
-    ];
-
-    setAlbumsMainPage(updatedAlbums);
-
-    // ✅ Fetch existing top100 from DB
-    const { data: userData, error: fetchError } = await supabase
-      .from("Accounts")
-      .select("top100")
-      .eq("id", user.id)
-      .single();
-
-    if (fetchError) {
-      console.error("Error fetching top100 albums:", fetchError);
-      return;
-    }
-
-    const currentTop100 = userData?.top100 || [];
-
-    const updatedTop100Albums = [
-      ...currentTop100.filter(
-        (album) => (album.data || album.albumData)?.name !== albumData.name
-      ),
-      newAlbum,
-    ];
-
-    // ✅ Update albums
-    const { error: albumsError } = await supabase
-      .from("Accounts")
-      .update({ albums: updatedAlbums })
-      .eq("id", user.id);
-
-    // ✅ Update top100
-    const { error: top100Error } = await supabase
-      .from("Accounts")
-      .update({ top100: updatedTop100Albums })
-      .eq("id", user.id);
-
-    if (albumsError) console.error("Error updating albums:", albumsError);
-    if (top100Error) console.error("Error updating top100:", top100Error);
-    if (!albumsError && !top100Error) console.log("Albums saved successfully");
-  }
-  async function handleDelete(name, artists) {
-    // Remove album from local albums
-    const updatedAlbums = albumsMainPage.filter(
-      (album) => album.albumData.name !== name
-    );
-
-    // Remove localStorage keys
-    const artistNames = artists.map((artist) => artist.name);
-    const localStorageTrackKey =
-      artistNames.length === 1
-        ? `tracksRated-${name}-${artistNames[0]}`
-        : `tracksRated-${name}-${artistNames.join(" & ")}`;
-    const localStorageAlbumKey = `albumRating-${name}`;
-    localStorage.removeItem(localStorageTrackKey);
-    localStorage.removeItem(localStorageAlbumKey);
-
-    // ✅ Fetch current top100 from DB
-    const { data: userData, error: fetchError } = await supabase
-      .from("Accounts")
-      .select("top100")
-      .eq("id", user.id)
-      .single();
-
-    if (fetchError) {
-      console.error("Error fetching top100 for deletion:", fetchError);
-      return;
-    }
-
-    const currentTop100 = userData?.top100 || [];
-
-    // ✅ Filter the album out of top100 too
-    const updatedTop100 = currentTop100.filter(
-      (album) => (album.data || album.albumData)?.name !== name
-    );
-
-    // ✅ Update Supabase
-    const { error: updateError } = await supabase
-      .from("Accounts")
-      .update({
-        albums: updatedAlbums,
-        top100: updatedTop100,
-      })
-      .eq("id", user.id);
-
-    if (updateError) {
-      console.error("Error updating after delete:", updateError);
-    } else {
-      console.log("Album deleted successfully");
-    }
-
-    isAlbumSelected(false);
-  }
-
-  return (
+  return isAlbumLog ? (
+    <AlbumLog
+      albumData={albumData}
+      tracks={data?.items}
+      setIsAlbumLog={setIsAlbumLog}
+      setIsAlbumSelected={isAlbumSelected}
+      albumsMainPage={albumsMainPage}
+      setAlbumsMainPage={setAlbumsMainPage}
+    />
+  ) : (
     <div className="p-7 pl-12 pt-15 bg-[#191919] h-dvh flex text-white gap-10 items-start">
       <div>
         <img
           src={albumData.images?.[0].url}
           alt="album"
-          className="rounded-xl"
+          className={
+            albumClick
+              ? `album-cover-hover rounded-xl scale-105 transition-all`
+              : `album-cover rounded-xl hover:scale-105 transition-all ease-linear`
+          }
+          onClick={() => setAlbumClick((albumClick) => !albumClick)}
         />
       </div>
       <div className="flex flex-col gap-0.5">
@@ -215,7 +120,10 @@ function Album({
           </p>
           <p className="opacity-50 translate-x-38 text-xl">{albumLength}</p>
         </div>
-        <button className="bg-[#252525] p-3 rounded-xl mt-2 text-xl flex justify-center gap-2 items-center w-[585px] ">
+        <button
+          onClick={() => setIsAlbumLog(true)}
+          className="bg-[#252525] p-3 rounded-xl mt-2 text-xl flex justify-center gap-2 items-center w-[545px] cursor-pointer"
+        >
           <img src="Add.svg" alt="add" />
           Log Album
         </button>

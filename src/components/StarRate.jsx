@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { FaStar, FaStarHalfAlt } from "react-icons/fa";
 
 function StarRate({ rating, setRating, size }) {
   const [isLastClicked, setIsLastClicked] = useState(null);
@@ -10,18 +9,18 @@ function StarRate({ rating, setRating, size }) {
       setIsLastClicked(null);
     } else {
       setRating(value);
-      // to set the value of isLastClicked so when I click on it again it will do the comparsion
       setIsLastClicked(value);
     }
   }
 
   return (
-    <div className="flex ">
+    <div className="flex gap-3">
       {[...Array(5)].map((_, index) => {
         const fullValue = index + 1;
         const halfValue = index + 0.5;
         const isHalf = rating === halfValue;
         const isFull = rating >= fullValue;
+
         return (
           <div key={index}>
             <label>
@@ -30,24 +29,24 @@ function StarRate({ rating, setRating, size }) {
                 name="rate"
                 value={fullValue}
                 onClick={() => handleRating(isHalf ? halfValue : fullValue)}
+                className="hidden"
               />
-              {/* it checks if there's a half rating if there is it uses
-             the star half icon if not it uses the full star icon
-             now on initial render it checks if there is half but no 
-             then it does the else condition 
-              */}
               {isHalf ? (
-                <FaStarHalfAlt color="black"  />
+                // Half star (you can add a StarHalf.svg if needed)
+                <img
+                  src="/HalfStar.svg"
+                  alt="Half Star"
+                  style={{ width: size, height: size }}
+                  className="opacity-80 w-[35px] h-[34px]"
+                />
               ) : (
-                <>
-                  {/* on this condition it checks isFull if not it uses gray */}
-                  <FaStar
-                    color={isFull ? "#2A75E4" : "gray"}
-                    size={size ? size : null}
-                    stroke={"black"}
-                  />
-                </>
-              )}{" "}
+                <img
+                  src={isFull ? "/StarFull.svg" : "/Star.svg"}
+                  alt={isFull ? "Full Star" : "Empty Star"}
+                  style={{ width: size, height: size }}
+                  className="opacity-80"
+                />
+              )}
             </label>
           </div>
         );

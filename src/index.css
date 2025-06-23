@@ -193,3 +193,11 @@ input[type="radio"] {
 .pointer {
   cursor: pointer;
 }
+
+.album-cover:hover {
+  filter: drop-shadow(0 10px 20px rgba(255, 255, 255, 0.429));
+}
+
+.album-cover-hover {
+  filter: drop-shadow(0 10px 20px rgba(255, 255, 255, 0.429));
+}

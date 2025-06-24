@@ -3,6 +3,7 @@ import FilterAlbums from "./FilterAlbums";
 import Logo from "./Logo";
 import SearchBar from "./SearchBar";
 import UserProfile from "./UserProfile";
+import { motion } from "motion/react";
 
 function Navbar({
   isAlbumSelected,
@@ -16,7 +17,7 @@ function Navbar({
     navigate("/top100");
   };
   return (
-    <nav className="bg-[#191919] text-white">
+    <nav className="bg-[#191919] text-white p-5 flex justify-between items-center">
       <Logo isAlbumSelected={isAlbumSelected} />
       <SearchBar
         isAlbumSelected={isAlbumSelected}
@@ -26,9 +27,14 @@ function Navbar({
         setAlbumsMainPage={setAlbumsMainPage}
         albumsMainPage={albumsMainPage}
       />
-      <p className="pointer" onClick={() => handleTopAlbumsClick()}>
+      <motion.p
+        className="bg-[#2A2A2A] p-3 rounded-3xl px-5 cursor-pointer"
+        onClick={() => handleTopAlbumsClick()}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
         Top Ranking
-      </p>
+      </motion.p>
       <UserProfile />
     </nav>
   );

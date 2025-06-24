@@ -1,6 +1,7 @@
 import { useContext, useState } from "react";
 import supabase from "../supabaseClient";
 import { UserContext } from "../context/UserContext";
+import { AnimatePresence, motion } from "motion/react";
 
 function FilterAlbums({ setAlbumsMainPage, albumsMainPage }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,53 +56,58 @@ function FilterAlbums({ setAlbumsMainPage, albumsMainPage }) {
   }
 
   return (
-    <div style={{ position: "relative", display: "inline-block" }}>
-      <p onClick={() => setIsOpen(!isOpen)} style={{ cursor: "pointer" }}>
+    <div className="bg-[#2A2A2A] p-3 rounded-3xl px-5">
+      <motion.p
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setIsOpen(!isOpen)}
+        style={{ cursor: "pointer" }}
+      >
         Filter
-      </p>
-      {isOpen && (
-        <div
-          style={{
-            position: "absolute",
-            background: "white",
-            padding: "1rem",
-            cursor: "pointer",
-          }}
-        >
-          <p
-            className={`hover:bg-gray-200 transition-all px-2 py-1 rounded ${
-              isActive === "high" ? "bg-gray-300 font-semibold" : ""
-            }`}
-            onClick={HighestRated}
+      </motion.p>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0 }}
+            className="absolute bg-[#2a2a2a] p-3 cursor-pointer translate-y-4 -translate-x-13 opacity-95"
           >
-            Highest Rated
-          </p>
-          <p
-            className={`hover:bg-gray-200 transition-all px-2 py-1 rounded ${
-              isActive === "low" ? "bg-gray-300 font-semibold" : ""
-            }`}
-            onClick={LowestRated}
-          >
-            Lowest Rated
-          </p>
-          <p
-            className={`hover:bg-gray-200 transition-all px-2 py-1 rounded ${
-              isActive === "new" ? "bg-gray-300 font-semibold" : ""
-            }`}
-            onClick={NewestAdded}
-          >
-            Newest
-          </p>
-          <p
-            className={`hover:bg-gray-200 transition-all px-2 py-1 rounded ${
-              isActive === "old" ? "bg-gray-300 font-semibold" : ""
-            }`}
-            onClick={OldestAdded}
-          >
-            Oldest
-          </p>
-        </div>
-      )}
+            <p
+              className={`hover:bg-[#3a3a3a] transition-all px-2 my-2 rounded ${
+                isActive === "high" ? "bg-[#3a3a3a] font-semibold" : ""
+              }`}
+              onClick={HighestRated}
+            >
+              Highest Rated
+            </p>
+            <p
+              className={`hover:bg-[#3a3a3a] transition-all px-2 my-2 rounded ${
+                isActive === "low" ? "bg-[#3a3a3a] font-semibold" : ""
+              }`}
+              onClick={LowestRated}
+            >
+              Lowest Rated
+            </p>
+            <p
+              className={`hover:bg-[#3a3a3a] transition-all px-2 my-2 rounded ${
+                isActive === "new" ? "bg-[#3a3a3a] font-semibold" : ""
+              }`}
+              onClick={NewestAdded}
+            >
+              Newest
+            </p>
+            <p
+              className={`hover:bg-[#3a3a3a] transition-all px-2 my-3 rounded ${
+                isActive === "old" ? "bg-[#3a3a3a] font-semibold" : ""
+              }`}
+              onClick={OldestAdded}
+            >
+              Oldest
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

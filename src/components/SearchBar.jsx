@@ -30,22 +30,24 @@ function SearchBar({ isAlbumSelected, setAlbumData }) {
   }
 
   return (
-    <div className="bg-[#191919] text-white">
-      <input
-        id="searchbar"
-        placeholder="Search..."
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") submit();
-        }}
-      />
-      <button
-        className="py-[7px] px-2.5 border-0 text-white bg-[#3f3939] cursor-pointer"
-        onClick={submit}
-      >
-        Submit
-      </button>
+    <div className="bg-[#2A2A2A] text-white rounded-4xl ">
+      <div className="flex justify-between gap-2 w-[400px] items-center">
+        <input
+          className="opacity-40 p-4 transition-all outline-0 w-[350px]"
+          placeholder="Search..."
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") submit();
+          }}
+        />
+        <button
+          className="px-2.5 border-0 cursor-pointer hover:scale-90 transition-all"
+          onClick={submit}
+        >
+          <img src="Search.svg" alt="search" />
+        </button>
+      </div>
 
       {shouldFetch && albumsData.length > 0 && (
         <div className="album-navbar-holder">

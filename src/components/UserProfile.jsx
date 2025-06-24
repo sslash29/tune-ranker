@@ -9,7 +9,7 @@ function UserProfile() {
     <motion.div
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 1 }}
-      className="bg-[#2A2A2A] p-3 rounded-3xl px-5"
+      className="bg-[#2A2A2A] p-3 py-2 rounded-3xl px-5"
     >
       <Link
         to={user.aud ? "/account" : "/form"} // used the aud(authenticated) because the only way for the user log out if he's already in

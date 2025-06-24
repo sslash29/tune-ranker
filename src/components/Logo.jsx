@@ -17,7 +17,7 @@ function Logo({ isAlbumSelected }) {
       className="cursor-pointer"
     >
       <h3 className="text-4xl" onClick={() => handleLogoClick()}>
-        Channel.fm
+        channel.fm
       </h3>
     </motion.div>
   );

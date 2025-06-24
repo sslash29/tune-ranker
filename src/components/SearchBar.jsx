@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import useFetch from "../hooks/useFetch";
 import AlbumSearch from "./AlbumSearch";
 import { AlbumSearchContext } from "../context/AlbumSearchContext";
@@ -29,11 +29,24 @@ function SearchBar({ isAlbumSelected, setAlbumData }) {
     }
   }
 
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === "Escape") {
+        setShouldFetch(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+
+    // Cleanup listener on unmount
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [setShouldFetch]);
+
   return (
     <div className="bg-[#2A2A2A] text-white rounded-4xl ">
-      <div className="flex justify-between gap-2 w-[400px] items-center">
+      <div className="flex justify-between gap-30 w-[500px] items-center relative">
         <input
-          className="opacity-40 p-4 transition-all outline-0 w-[350px]"
+          className="opacity-40 p-4 transition-all outline-0 w-[450px]"
           placeholder="Search..."
           value={value}
           onChange={(e) => setValue(e.target.value)}
@@ -42,7 +55,7 @@ function SearchBar({ isAlbumSelected, setAlbumData }) {
           }}
         />
         <button
-          className="px-2.5 border-0 cursor-pointer hover:scale-90 transition-all"
+          className="px-2.5 border-0 cursor-pointer hover:scale-90 transition-all absolute -right-20 scale-80"
           onClick={submit}
         >
           <img src="Search.svg" alt="search" />
@@ -50,7 +63,7 @@ function SearchBar({ isAlbumSelected, setAlbumData }) {
       </div>
 
       {shouldFetch && albumsData.length > 0 && (
-        <div className="album-navbar-holder">
+        <div className="absolute bg-[#252525] w-[350px] translate-x-7 opacity-90 rounded-lg p-5 flex flex-col gap-5 z-50 shadow-xl translate-y-3">
           {albumsData.map((album, index) => (
             <AlbumSearch
               key={index}

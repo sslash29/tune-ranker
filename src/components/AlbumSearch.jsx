@@ -21,7 +21,7 @@ function AlbumSearch({
     onSelect?.({ name, favAlbumImg });
   }
   return (
-    <div className="album-search" onClick={() => handleAlbumSearchClick()}>
+    <div className="flex gap-2" onClick={() => handleAlbumSearchClick()}>
       <img src={img} alt="img" />
       <div className="metadata">
         <h5>{name}</h5>

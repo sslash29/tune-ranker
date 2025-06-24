@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import supabase from "../supabaseClient";
 import { UserContext } from "../context/UserContext";
 import { AnimatePresence, motion } from "motion/react";
@@ -7,6 +7,19 @@ function FilterAlbums({ setAlbumsMainPage, albumsMainPage }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isActive, setIsActive] = useState("high");
   const { user } = useContext(UserContext);
+
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+
+    // Cleanup listener on unmount
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [setIsOpen]);
 
   async function HighestRated() {
     // Create a new sorted array without mutating state directly
@@ -18,6 +31,7 @@ function FilterAlbums({ setAlbumsMainPage, albumsMainPage }) {
       .update({ albums: highestRated })
       .eq("id", user.id);
     setIsActive("high");
+    setIsOpen(false);
   }
 
   async function LowestRated() {
@@ -33,6 +47,7 @@ function FilterAlbums({ setAlbumsMainPage, albumsMainPage }) {
       .update({ albums: lowestRated })
       .eq("id", user.id);
     setIsActive("low");
+    setIsOpen(false);
   }
 
   async function NewestAdded() {
@@ -43,6 +58,7 @@ function FilterAlbums({ setAlbumsMainPage, albumsMainPage }) {
       .update({ albums: newest })
       .eq("id", user.id);
     setIsActive("new");
+    setIsOpen(false);
   }
 
   async function OldestAdded() {
@@ -53,18 +69,19 @@ function FilterAlbums({ setAlbumsMainPage, albumsMainPage }) {
       .update({ albums: oldest })
       .eq("id", user.id);
     setIsActive("old");
+    setIsOpen(false);
   }
 
   return (
-    <div className="bg-[#2A2A2A] p-3 rounded-3xl px-5">
-      <motion.p
+    <div className="bg-[#2A2A2A] w-fit flex items-center rounded-full p-1">
+      <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
-        style={{ cursor: "pointer" }}
+        className="cursor-pointer"
       >
-        Filter
-      </motion.p>
+        <img src="Filter.svg" alt="filter" className="rounded-full" />
+      </motion.button>
       <AnimatePresence>
         {isOpen && (
           <motion.div

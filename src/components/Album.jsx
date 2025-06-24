@@ -101,7 +101,7 @@ function Album({
         </div>
         <button
           onClick={() => setIsAlbumLog(true)}
-          className="bg-[#252525] p-3 rounded-xl mt-2 text-xl flex justify-center gap-2 items-center w-[545px] cursor-pointer"
+          className="bg-[#252525] p-3 rounded-xl mt-2 text-xl flex justify-center gap-2 items-center w-[557px] cursor-pointer"
         >
           <img src="Add.svg" alt="add" />
           Log Album

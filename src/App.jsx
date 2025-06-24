@@ -198,7 +198,7 @@ function App() {
   }, [user?.id, top100]);
 
   return (
-    <div>
+    <div className="flex flex-col gap-5">
       <AlbumSearchProvider>
         <BrowserRouter>
           <Navbar

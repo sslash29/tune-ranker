@@ -108,9 +108,10 @@ function AlbumLog({
       console.error("Error fetching top100 albums:", fetchError);
       return;
     }
+    console.log(userData);
 
     const updatedTop100Albums = [
-      ...userData.top100.filter(
+      ...(userData?.top100 || []).filter(
         (album) => album.albumData?.id !== albumData.id
       ),
       newAlbum,
@@ -185,7 +186,7 @@ function AlbumLog({
             transition={{ duration: 0.3 }}
             className="fixed bottom-20 right-5 bg-[#252525] flex flex-col p-5 rounded-4xl gap-2"
           >
-            <button onClick={handleSave} className="hover:scale-90">
+            <button onClick={() => handleSave()} className="hover:scale-90">
               Save Rating
             </button>
             <button

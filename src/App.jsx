@@ -47,25 +47,6 @@ function App() {
     return Object.entries(grouped).map(([key, data]) => ({ key, data }));
   };
 
-  const getRatedAlbumsFromLocalStorage = () => {
-    const ratedAlbumsArray = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key.startsWith("tracksRated-")) {
-        const value = localStorage.getItem(key);
-        try {
-          const parsed = JSON.parse(value);
-          if (parsed && Object.keys(parsed).length > 0) {
-            ratedAlbumsArray.push({ key, data: parsed });
-          }
-        } catch (e) {
-          console.error(`Error parsing localStorage key: ${key}`, e);
-        }
-      }
-    }
-    return ratedAlbumsArray;
-  };
-
   const addAlbumsMainPage = (newAlbums) => {
     setAlbumsMainPageState((prevAlbums) => {
       const combinedAlbums = [...prevAlbums];
@@ -88,35 +69,29 @@ function App() {
 
   useEffect(() => {
     const updateChangedSongs = async () => {
-      const ratedAlbumsArray = getRatedAlbumsFromLocalStorage();
-      setSongs(ratedAlbumsArray);
-
       if (!user?.id) return;
 
-      if (previousRatedAlbums.current === null) {
-        const { data, error } = await supabase
-          .from("Accounts")
-          .select("top100songs")
-          .eq("id", user.id)
-          .single();
+      const { data, error } = await supabase
+        .from("Accounts")
+        .select("top100songs")
+        .eq("id", user.id)
+        .single();
 
-        if (error || !data) {
-          console.error("Error fetching top100songs before update:", error);
-          return;
-        }
-
-        previousRatedAlbums.current = groupSupabaseTop100(
-          data.top100songs || []
-        );
+      if (error || !data) {
+        console.error("Error fetching top100songs before update:", error);
+        return;
       }
 
-      const prev = previousRatedAlbums.current.filter(
-        (item) => item.data && Object.keys(item.data).length > 0
-      );
-      const current = ratedAlbumsArray.filter(
-        (item) => item.data && Object.keys(item.data).length > 0
-      );
+      const currentRaw = data.top100songs || [];
+      const current = groupSupabaseTop100(currentRaw);
 
+      if (previousRatedAlbums.current === null) {
+        previousRatedAlbums.current = current;
+        setSongs(current);
+        return;
+      }
+
+      const prev = previousRatedAlbums.current;
       const prevMap = Object.fromEntries(
         prev.map((item) => [item.key, item.data])
       );
@@ -124,56 +99,22 @@ function App() {
         current.map((item) => [item.key, item.data])
       );
 
-      const changesToUpdate = current.filter(
-        (item) =>
-          !prevMap[item.key] ||
-          JSON.stringify(prevMap[item.key]) !== JSON.stringify(item.data)
-      );
+      const hasChanges = JSON.stringify(prevMap) !== JSON.stringify(currentMap);
 
-      const removedKeys = prev
-        .filter((item) => !currentMap[item.key])
-        .map((item) => item.key);
-
-      if (changesToUpdate.length === 0 && removedKeys.length === 0) return;
+      if (!hasChanges) return;
 
       const updatedTop100 = extractTrackRatings(current);
 
-      const { data: supabaseData, error: fetchError } = await supabase
-        .from("Accounts")
-        .select("top100songs")
-        .eq("id", user.id)
-        .single();
-
-      if (fetchError || !supabaseData) {
-        console.error("Error fetching top100songs before update:", fetchError);
-        return;
-      }
-
-      const existing = supabaseData.top100songs || [];
-
-      const merged = [...existing];
-
-      updatedTop100.forEach((newItem) => {
-        const exists = existing.find(
-          (oldItem) =>
-            oldItem.track === newItem.track &&
-            oldItem.albumKey === newItem.albumKey
-        );
-
-        if (!exists) {
-          merged.push(newItem);
-        }
-      });
-
       const { error: updateError } = await supabase
         .from("Accounts")
-        .update({ top100songs: merged })
+        .update({ top100songs: updatedTop100 })
         .eq("id", user.id);
 
       if (updateError) {
         console.error("Error updating top100songs:", updateError);
       } else {
-        previousRatedAlbums.current = groupSupabaseTop100(merged);
+        previousRatedAlbums.current = current;
+        setSongs(current);
       }
     };
 
@@ -182,6 +123,7 @@ function App() {
 
   useEffect(() => {
     async function GetUser() {
+      console.log("effect running");
       const storedSessionName = "sb-talmzswbtzwycpmgdfzb-auth-token";
       const storedSession = localStorage.getItem(storedSessionName);
       if (!storedSession) return;
@@ -189,13 +131,13 @@ function App() {
       const { data, error } = await supabase.auth.setSession(
         JSON.parse(storedSession)
       );
-
       if (error) {
         console.error("Error setting session:", error.message || error);
         return;
       }
 
       const { user } = data;
+      console.log(data);
 
       if (user) {
         const { data: accountsData, error: accountsError } = await supabase
@@ -215,6 +157,11 @@ function App() {
         setUser({ aud: user.aud, ...accountsData });
         setTop100(accountsData.top100);
         setAlbumsMainPageDirectly(accountsData.albums || []);
+        console.log(accountsData);
+        previousRatedAlbums.current = groupSupabaseTop100(
+          accountsData.top100songs || []
+        );
+        setSongs(previousRatedAlbums.current);
       } else {
         console.warn("User object is missing after setSession.");
       }

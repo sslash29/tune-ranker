@@ -3,6 +3,7 @@ function AlbumsMainPage({ albumsMainPage, isAlbumSelected, setAlbumData }) {
     isAlbumSelected(true);
     setAlbumData(data);
   }
+  console.log(albumsMainPage);
 
   return (
     <div>

@@ -1,42 +1,103 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import StarRate from "./StarRate";
+import supabase from "../supabaseClient";
+import { UserContext } from "../context/UserContext";
 
 function TracksRated({ tracks = [], albumName, artists = [] }) {
-  const [trackRatings, setTrackRatings] = useState(() => {
-    const artistNames = artists.map((artist) => artist.name);
-    const localStorageKey =
-      artistNames.length === 1
-        ? `tracksRated-${albumName}-${artistNames[0]}`
-        : `tracksRated-${albumName}-${artistNames.join(" & ")}`;
-
-    const storedValue = localStorage.getItem(localStorageKey);
-    return storedValue ? JSON.parse(storedValue) : {};
-  });
-
+  const [trackRatings, setTrackRatings] = useState({});
+  const { user } = useContext(UserContext);
+  console.log(tracks);
   const artistNames = artists.map((artist) => artist.name);
-  const localStorageArtistKeyStr =
-    artistNames.length === 1 ? artistNames[0] : artistNames.join("&");
+  const albumKey =
+    artistNames.length === 1
+      ? `tracksRated-${albumName}-${artistNames[0]}`
+      : `tracksRated-${albumName}-${artistNames.join(" & ")}`;
 
   useEffect(() => {
-    localStorage.setItem(
-      `tracksRated-${albumName}-${localStorageArtistKeyStr}`,
-      JSON.stringify(trackRatings)
-    );
-  }, [trackRatings, albumName]);
+    async function fetchTrackRatings() {
+      if (!user?.id) return;
 
-  function formatDuration(ms) {
-    const totalSeconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    const paddedSeconds = seconds < 10 ? `0${seconds}` : seconds;
-    return `${minutes}:${paddedSeconds}`;
-  }
+      const { data, error } = await supabase
+        .from("Accounts")
+        .select("top100songs")
+        .eq("id", user.id)
+        .single();
 
-  function handleTrackRatingChange(trackId, newRating) {
-    setTrackRatings((prevRatings) => ({
-      ...prevRatings,
+      if (error) {
+        console.error("Error fetching track ratings:", error);
+        return;
+      }
+
+      const top100songs = data?.top100songs || [];
+
+      // Filter ratings for this albumKey
+      const currentAlbumTracks = top100songs.filter(
+        (item) => item.albumKey === albumKey
+      );
+
+      // Group them by trackId
+      const groupedRatings = currentAlbumTracks.reduce(
+        (acc, { track, rating }) => {
+          acc[track] = rating;
+          return acc;
+        },
+        {}
+      );
+
+      setTrackRatings(groupedRatings);
+    }
+
+    fetchTrackRatings();
+  }, [albumKey, user?.id]);
+
+  async function handleTrackRatingChange(trackId, newRating) {
+    const updatedRatings = {
+      ...trackRatings,
       [trackId]: newRating,
-    }));
+    };
+    setTrackRatings(updatedRatings);
+
+    const trackInfo = tracks.find((t) => t.id === trackId); // ✅ find the actual track object
+
+    const newEntry = {
+      albumKey,
+      track: trackId,
+      rating: newRating,
+      trackName: trackInfo?.name || "Unknown", // ✅ include the track name safely
+      albumInfo: `${albumName}-${artistNames.join(" & ")}`, // optional but consistent with your schema
+    };
+
+    try {
+      const { data, error: fetchError } = await supabase
+        .from("Accounts")
+        .select("top100songs")
+        .eq("id", user.id)
+        .single();
+
+      if (fetchError) {
+        console.error("Error fetching before update:", fetchError);
+        return;
+      }
+
+      const existing = data.top100songs || [];
+
+      const filtered = existing.filter(
+        (item) => !(item.albumKey === albumKey && item.track === trackId)
+      );
+
+      const updated = [...filtered, newEntry];
+
+      const { error: updateError } = await supabase
+        .from("Accounts")
+        .update({ top100songs: updated })
+        .eq("id", user.id);
+
+      if (updateError) {
+        console.error("Error updating rating:", updateError);
+      }
+    } catch (e) {
+      console.error("Unexpected error:", e);
+    }
   }
 
   return (
@@ -45,7 +106,6 @@ function TracksRated({ tracks = [], albumName, artists = [] }) {
         <h1>Sorry No Tracks</h1>
       ) : (
         tracks.map((track, index) => {
-          const durationStr = formatDuration(track.duration_ms);
           const currentRating = trackRatings[track.id] || 0;
 
           return (

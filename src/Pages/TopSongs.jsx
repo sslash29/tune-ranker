@@ -90,12 +90,12 @@ function TopSongs() {
     setSelectedIndex(null);
     setNewPosition("");
   };
-
   return (
     <div className="p-5">
       {ratedSongs.length < 1 && <p>You haven't rated any songs yet</p>}
       <div className="flex flex-col gap-4">
         {ratedSongs.map((song, index) => {
+          console.log(song);
           const { album, artists } = parseAlbumInfo(song.albumInfo);
           const isSelected = selectedIndex === index;
 
@@ -111,7 +111,7 @@ function TopSongs() {
               <div className="flex justify-between">
                 <div>
                   <p className="font-semibold text-lg">
-                    {index + 1}. {song.track}
+                    {index + 1}. {song.trackName}
                   </p>
                   <p className="text-sm text-gray-600">{album}</p>
                   <p className="text-sm text-gray-600">

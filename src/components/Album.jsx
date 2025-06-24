@@ -1,7 +1,5 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
 import Tracks from "./Tracks";
-import supabase from "../supabaseClient";
-import { UserContext } from "../context/UserContext";
 import useFetch from "../hooks/useFetch";
 import capitalizeWords from "../helpers/capatalize";
 import AlbumLog from "./AlbumLog";
@@ -12,14 +10,8 @@ function Album({
   setAlbumsMainPage,
   albumsMainPage,
 }) {
-  const [rating, setRating] = useState(() => {
-    const key = `albumRating-${albumData.name}`;
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : 0;
-  });
   const [albumClick, setAlbumClick] = useState(false);
   const [isAlbumLog, setIsAlbumLog] = useState(false);
-  const { user } = useContext(UserContext);
   const AlbumId = albumData?.uri.split(":")[2];
   const artistId = albumData?.artists[0].id;
   let artists = [];
@@ -27,13 +19,6 @@ function Album({
   const { data } = useFetch(
     `https://localhost:5000/api/album-tracks?AlbumId=${encodeURIComponent(
       AlbumId
-    )}`,
-    { headers: undefined }
-  );
-
-  const { data: artistData } = useFetch(
-    `https://localhost:5000/api/artist-data?artistId=${encodeURIComponent(
-      artistId
     )}`,
     { headers: undefined }
   );
@@ -47,14 +32,6 @@ function Album({
 
   console.log(albumData);
   console.log(artistGenre);
-  function formatPlayCount(count) {
-    if (!count) return "N/A";
-    const num = Number(count);
-    if (isNaN(num)) return count;
-    return num >= 1_000_000_000
-      ? `${(num / 1_000_000_000).toFixed(1)}B`
-      : `${(num / 1_000_000).toFixed(1)}M`;
-  }
 
   function getFormattedAlbumLength(tracks) {
     if (!Array.isArray(tracks)) return "N/A";
@@ -96,7 +73,9 @@ function Album({
         />
       </div>
       <div className="flex flex-col gap-0.5">
-        <h2 className=" text-5xl">{capitalizeWords(albumData.name)}</h2>
+        <h2 className=" text-5xl w-[545px]:">
+          {capitalizeWords(albumData.name)}
+        </h2>
         <div className="flex items-center gap-2 ">
           {albumData.artists.map((artist, index) => {
             artists.push(artist);

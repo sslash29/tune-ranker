@@ -97,7 +97,7 @@ function Album({
       </div>
       <div className="flex flex-col gap-0.5">
         <h2 className=" text-5xl">{capitalizeWords(albumData.name)}</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ">
           {albumData.artists.map((artist, index) => {
             artists.push(artist);
             return (
@@ -118,7 +118,7 @@ function Album({
           <p className="opacity-50 translate-x-1 text-xl">
             {albumData["total_tracks"] || "unknown"} tracks
           </p>
-          <p className="opacity-50 translate-x-38 text-xl">{albumLength}</p>
+          <p className="opacity-50 translate-x-41 text-xl">{albumLength}</p>
         </div>
         <button
           onClick={() => setIsAlbumLog(true)}

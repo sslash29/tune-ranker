@@ -35,9 +35,7 @@ function FavoriteAlbums({ editMode }) {
 
   return (
     <div>
-      <h3 className="text-xl font-semibold">Favorite Albums</h3>
-      <hr className="my-2" />
-      <div className="flex gap-4 w-[1280px]">
+      <div className="flex gap-6.5 w-[1280px]">
         {displayAlbums.map((album, index) => {
           console.log(album);
           return (

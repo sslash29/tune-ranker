@@ -1,22 +1,23 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import HomePage from "./Pages/HomePage";
-import Account from "./Pages/Account";
+import Account from "./Pages/UserAccount";
 import { AlbumSearchProvider } from "./context/AlbumSearchContext";
 import Form from "./Pages/Form";
 import { UserContext } from "./context/UserContext";
-import Top100 from "./Pages/Top100";
 import Navbar from "./components/Navbar";
 import Test from "./Pages/Test";
 import supabase from "./supabaseClient";
 
 function App() {
   const [albumSelected, isAlbumSelected] = useState(false);
+  const [accountSelected, isAccountSelected] = useState([]);
   const [albumData, setAlbumData] = useState({});
   const { setTop100, top100, setUser, user, setSongs } =
     useContext(UserContext);
   const [albumsMainPage, setAlbumsMainPageState] = useState([]);
   const previousRatedAlbums = useRef(null);
+  const [activeSection, setActiveSection] = useState(null);
 
   const extractTrackRatings = (albumArray) => {
     const result = [];
@@ -147,6 +148,7 @@ function App() {
           .single();
 
         if (accountsError) {
+          console.dir(user);
           console.error(
             "Error fetching account data:",
             accountsError.message || accountsError
@@ -157,7 +159,6 @@ function App() {
         setUser({ aud: user.aud, ...accountsData });
         setTop100(accountsData.top100);
         setAlbumsMainPageDirectly(accountsData.albums || []);
-        console.log(accountsData);
         previousRatedAlbums.current = groupSupabaseTop100(
           accountsData.top100songs || []
         );
@@ -206,6 +207,8 @@ function App() {
             setAlbumData={setAlbumData}
             setAlbumsMainPage={addAlbumsMainPage}
             albumsMainPage={albumsMainPage}
+            setActiveSection={setActiveSection}
+            isAccountSelected={isAccountSelected}
           />
           <Routes>
             <Route
@@ -218,19 +221,13 @@ function App() {
                   albumSelected={albumSelected}
                   setAlbumsMainPage={addAlbumsMainPage}
                   albumsMainPage={albumsMainPage}
+                  activeSection={activeSection}
+                  setActiveSection={setActiveSection}
+                  accountSelected={accountSelected}
                 />
               }
             />
             <Route path="/form" element={<Form />} />
-            <Route
-              path="/top100"
-              element={
-                <Top100
-                  isAlbumSelected={isAlbumSelected}
-                  setAlbumData={setAlbumData}
-                />
-              }
-            />
             <Route path="/test" element={<Test />} />
             <Route path="/account" element={<Account />} />
           </Routes>

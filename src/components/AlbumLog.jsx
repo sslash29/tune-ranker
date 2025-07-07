@@ -129,7 +129,7 @@ function AlbumLog({
   }
 
   return (
-    <div className="bg-[#191919] p-7 flex text-white justify-center gap-10 relative">
+    <div className="p-7 flex text-white justify-center gap-10 relative">
       <div>
         <img
           src={albumData.images?.[1].url}

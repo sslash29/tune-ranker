@@ -9,6 +9,7 @@ function Album100({
   setUser,
   isAlbumSelected,
   setAlbumData,
+  setActiveSection,
 }) {
   const [albumIndex, setAlbumIndex] = useState(null);
   const [edit, setEdit] = useState("");
@@ -67,12 +68,13 @@ function Album100({
     setAlbumIndex(index);
   };
 
+  console.log(albumsPosition);
   return (
-    <ol className="flex flex-col gap-5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {albumsPosition?.map((album, key) => (
         <AlbumTop100
           key={key}
-          album={album.albumData} // pass albumData directly
+          albumData={album}
           handleAlbumClick={handleAlbumClick}
           index={key}
           handleChangePosition={handleChangePosition}
@@ -82,9 +84,10 @@ function Album100({
           albumIndex={albumIndex}
           isAlbumSelected={isAlbumSelected}
           setAlbumData={setAlbumData}
+          setActiveSection={setActiveSection}
         />
       ))}
-    </ol>
+    </div>
   );
 }
 

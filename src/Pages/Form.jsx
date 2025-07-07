@@ -10,12 +10,12 @@ function isStrongPassword(pw) {
 function Form() {
   const [email, setemail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
   const [message, setMessage] = useState("");
   const [attempts, setAttempts] = useState(0);
   const navigate = useNavigate();
   const { setUser, isSignUp, setIsSignUp } = useContext(UserContext);
 
-  // **Login Function**
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -40,10 +40,31 @@ function Form() {
     }
 
     setMessage("Logging in...");
-
     const userId = authData.user.id;
 
-    // 🔍 Fetch user data from Accounts table
+    // Check if user already has an account row
+    const { data: existingAccount, error: accountFetchError } = await supabase
+      .from("Accounts")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+
+    // If not found, insert a new one (no username since it's not collected during login)
+    if (accountFetchError || !existingAccount) {
+      const { error: insertErr } = await supabase.from("Accounts").insert([
+        {
+          email: authData.user.email,
+          user_id: userId,
+          username: `user-${Date.now()}`, // fallback dummy username
+        },
+      ]);
+      if (insertErr) {
+        console.error("Insert error:", insertErr.message);
+        setMessage("Error creating account data.");
+        return;
+      }
+    }
+
     const { data: accountData, error: accountError } = await supabase
       .from("Accounts")
       .select("*")
@@ -56,13 +77,13 @@ function Form() {
     } else {
       setMessage("Login successful!");
       setUser(accountData);
-      navigate("/"); // Or wherever you want to go after login
+      navigate("/");
     }
   };
 
-  // **Sign-Up Function**
   const handleSignUp = async (e) => {
     e.preventDefault();
+
     if (!isStrongPassword(password)) {
       setMessage(
         "Password must be at least 8 characters, include a number and an uppercase letter."
@@ -70,45 +91,88 @@ function Form() {
       return;
     }
 
-    setMessage("Signing up...");
-    const { data, error } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-    });
-    if (error) {
-      setMessage(error.message);
+    if (!username.trim()) {
+      setMessage("Username is required.");
       return;
     }
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    console.dir(user);
-    const { insertData, insertErr } = await supabase.from("Accounts").insert([
+
+    // Check if username is already taken
+    const { data: existingUsername } = await supabase
+      .from("Accounts")
+      .select("id")
+      .eq("username", username)
+      .single();
+
+    if (existingUsername) {
+      setMessage("Username already taken.");
+      return;
+    }
+
+    setMessage("Signing up...");
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp(
+      {
+        email: email,
+        password: password,
+      }
+    );
+
+    if (signUpError) {
+      setMessage(signUpError.message);
+      return;
+    }
+
+    const user = signUpData.user;
+
+    // If email confirmation is required, user will be null
+    if (!user) {
+      setMessage("Check your email to confirm registration.");
+      return;
+    }
+
+    const { error: insertErr } = await supabase.from("Accounts").insert([
       {
         email: user.email,
         user_id: user.id,
+        username: username,
       },
     ]);
 
-    if (insertErr) setMessage(insertErr);
+    if (insertErr) {
+      console.error("Insert error:", insertErr.message);
+      setMessage("Sign-up succeeded but error saving account.");
+      return;
+    }
 
+    setMessage("Sign-up successful!");
     navigate("/");
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.formBox}>
-        <h2 style={styles.heading}>{isSignUp ? "Sign Up" : "Login"}</h2>
+    <div className="flex flex-col items-center justify-center min-h-screen text-white">
+      <div className="p-6 rounded-lg shadow-md w-80">
+        <h2 className="text-xl font-semibold mb-4 text-center">
+          {isSignUp ? "Sign Up" : "Login"}
+        </h2>
         <form
           onSubmit={isSignUp ? handleSignUp : handleLogin}
-          style={styles.form}
+          className="flex flex-col"
         >
+          {isSignUp && (
+            <input
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="p-2 mb-2 border border-gray-300 rounded"
+              required
+            />
+          )}
           <input
             type="text"
-            placeholder="email"
+            placeholder="Email"
             value={email}
             onChange={(e) => setemail(e.target.value)}
-            style={styles.input}
+            className="p-2 mb-2 border border-gray-300 rounded"
             required
           />
           <input
@@ -116,21 +180,22 @@ function Form() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            style={styles.input}
+            className="p-2 mb-2 border border-gray-300 rounded"
             required
           />
-          <button type="submit" style={styles.button}>
+          <button
+            type="submit"
+            className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition-colors"
+          >
             {isSignUp ? "Sign Up" : "Login"}
           </button>
         </form>
-        {message && <p style={styles.message}>{message}</p>}
-        <p style={styles.switchText}>
+        {message && <p className="text-center mt-3 text-red-500">{message}</p>}
+        <p className="text-center mt-4 text-sm">
           {isSignUp ? "Already have an account?" : "Don't have an account?"}
           <button
-            onClick={() => {
-              setIsSignUp(!isSignUp);
-            }}
-            style={styles.switchButton}
+            onClick={() => setIsSignUp(!isSignUp)}
+            className="text-blue-500 underline ml-1"
           >
             {isSignUp ? "Login" : "Sign Up"}
           </button>
@@ -139,66 +204,5 @@ function Form() {
     </div>
   );
 }
-
-// **Styles**
-const styles = {
-  container: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: "100vh",
-    backgroundColor: "#f3f4f6",
-  },
-  formBox: {
-    backgroundColor: "white",
-    padding: "24px",
-    borderRadius: "8px",
-    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-    width: "320px",
-  },
-  heading: {
-    fontSize: "20px",
-    fontWeight: "600",
-    marginBottom: "16px",
-    textAlign: "center",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-  },
-  input: {
-    padding: "8px",
-    marginBottom: "8px",
-    border: "1px solid #d1d5db",
-    borderRadius: "4px",
-  },
-  button: {
-    backgroundColor: "#3b82f6",
-    color: "white",
-    padding: "8px",
-    borderRadius: "4px",
-    cursor: "pointer",
-    border: "none",
-  },
-  message: {
-    textAlign: "center",
-    marginTop: "10px",
-    color: "red",
-  },
-  switchText: {
-    textAlign: "center",
-    marginTop: "16px",
-    fontSize: "14px",
-  },
-  switchButton: {
-    color: "#3b82f6",
-    background: "none",
-    border: "none",
-    cursor: "pointer",
-    marginLeft: "4px",
-    textDecoration: "underline",
-  },
-};
 
 export default Form;

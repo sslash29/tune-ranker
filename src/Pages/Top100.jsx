@@ -1,13 +1,11 @@
 import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../context/UserContext";
-import { useNavigate } from "react-router-dom";
 import Album100 from "../components/Album100"; // import your component
 import TopSongs from "./TopSongs";
 
 function Top100({ isAlbumSelected, setAlbumData }) {
   const [albumsPosition, setAlbumsPosition] = useState([]);
   const { top100, user, setUser } = useContext(UserContext);
-  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState(null); // 'albums' | 'songs' | 'artists'
 
   useEffect(() => {

@@ -3,6 +3,7 @@ import Tracks from "./Tracks";
 import useFetch from "../hooks/useFetch";
 import capitalizeWords from "../helpers/capatalize";
 import AlbumLog from "./AlbumLog";
+import isArabic from "../helpers/isArabic";
 
 function Album({
   albumData,
@@ -59,7 +60,7 @@ function Album({
       setAlbumsMainPage={setAlbumsMainPage}
     />
   ) : (
-    <div className="p-7 pl-12 pt-15 bg-[#191919] h-dvh flex text-white gap-10 items-start">
+    <div className="p-7 pl-12 pt-15  h-dvh flex text-white gap-10 items-start">
       <div>
         <img
           src={albumData.images?.[0].url}
@@ -73,9 +74,14 @@ function Album({
         />
       </div>
       <div className="flex flex-col gap-0.5">
-        <h2 className=" text-5xl w-[545px]:">
+        <h2
+          className={`text-5xl w-[545px] ${
+            isArabic(albumData.name) ? "arabic-font" : ""
+          }`}
+        >
           {capitalizeWords(albumData.name)}
         </h2>
+
         <div className="flex items-center gap-2 ">
           {albumData.artists.map((artist, index) => {
             artists.push(artist);

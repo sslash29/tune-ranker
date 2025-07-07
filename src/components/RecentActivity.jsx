@@ -31,23 +31,19 @@ function RecentActivity() {
 
   return (
     <div>
-      <h3 className="text-xl font-semibold">Recent Albums</h3>
-      <hr className="my-2" />
       <div className="flex gap-4 w-[1280px]">
-        {recentAlbums
-          .slice(0, 4) // 🔹 Limit to 4 albums here during mapping
-          .map((album, index) => (
-            <div
-              key={index}
-              className="w-[300px] h-[300px] bg-gray-500 flex items-center justify-center rounded-xl cursor-pointer overflow-hidden"
-            >
-              <img
-                src={album.albumData.images[1].url}
-                className="w-full h-full object-cover rounded-xl"
-                alt={album.albumData.name}
-              />
-            </div>
-          ))}
+        {recentAlbums.slice(0, 4).map((album, index) => (
+          <div
+            key={index}
+            className="w-[300px] h-[300px] bg-gray-500 flex items-center justify-center rounded-xl cursor-pointer overflow-hidden"
+          >
+            <img
+              src={album.albumData.images[1].url}
+              className="w-full h-full object-cover rounded-xl"
+              alt={album.albumData.name}
+            />
+          </div>
+        ))}
       </div>
     </div>
   );

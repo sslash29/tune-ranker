@@ -16,13 +16,33 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: "CooperArabic";
+  src: url("/fonts/CooperArabic.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+html {
+  background-color: black;
+}
+
 body {
   margin: 0;
   padding: 0;
   font-family: "GothamBold", sans-serif;
   overflow-x: hidden;
-  background-color: #191919;
   color: white;
+  background: linear-gradient(
+    180deg,
+    #312f2f 0%,
+    #191919 17%,
+    #141414 28%,
+    #101010 37%,
+    #0e0e0e 49%,
+    #090909 62%,
+    #000000 100%
+  );
 }
 
 .album-cover:hover {
@@ -31,4 +51,10 @@ body {
 
 .album-cover-hover {
   filter: drop-shadow(0 10px 20px rgba(255, 255, 255, 0.429));
+}
+
+.arabic-font {
+  font-family: "CooperArabic", sans-serif;
+  font-size: xx-large;
+  transform: translateY(-5px);
 }

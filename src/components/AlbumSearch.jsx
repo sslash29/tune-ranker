@@ -1,6 +1,5 @@
 import { useContext } from "react";
 import { AlbumSearchContext } from "../context/AlbumSearchContext";
-import { useNavigate } from "react-router-dom";
 
 function AlbumSearch({
   name,
@@ -11,13 +10,14 @@ function AlbumSearch({
   isAlbumSelected,
   setAlbumData,
   onSelect,
+  setActiveSection,
 }) {
   const { setShouldFetch } = useContext(AlbumSearchContext);
-  const navigate = useNavigate();
   function handleAlbumSearchClick() {
     isAlbumSelected(true);
     setAlbumData(data);
     setShouldFetch(false);
+    setActiveSection(null);
     onSelect?.({ name, favAlbumImg });
   }
   return (

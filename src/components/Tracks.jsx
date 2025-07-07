@@ -32,7 +32,7 @@ function Tracks({ tracks = [], albumName, artists = [] }) {
   }
 
   return (
-    <div className="flex flex-col h-[495px] overflow-y-auto ">
+    <div className="flex flex-col h-[480px] overflow-y-auto ">
       {tracks.length === 0 ? (
         <h1>Sorry No Tracks</h1>
       ) : (

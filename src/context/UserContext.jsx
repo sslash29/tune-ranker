@@ -1,21 +1,22 @@
 // context/UserContext.js
 import { useState, createContext, useEffect } from "react";
 import supabase from "../supabaseClient";
+import { useParams } from "react-router-dom";
 
 const UserContext = createContext();
 
 function UserProvider({ children }) {
   const [user, setUser] = useState({});
   const [viewedUser, setViewedUser] = useState({});
+  const [viewedUserId, setViewedUserId] = useState(null);
   const [top100, setTop100] = useState({});
   const [isSignUp, setIsSignUp] = useState(false);
   const [songs, setSongs] = useState({});
   const [albumsThisYear, setAlbumsThisYear] = useState(0);
-
-  const albumsRated = top100 ? Object.keys(top100).length : 0;
+  const [albumsRated, setAlbumsRated] = useState(0);
 
   const getAlbumStats = async () => {
-    const idToUse = viewedUser?.id && user?.id ? viewedUser.id : user.id;
+    const idToUse = viewedUserId ? viewedUserId : user.id;
     if (!idToUse) return;
 
     const currentYear = new Date().getFullYear();
@@ -23,10 +24,11 @@ function UserProvider({ children }) {
 
     const { data, error } = await supabase
       .from("Accounts")
-      .select("albums")
+      .select("albums,top100")
       .eq("id", idToUse)
       .single();
 
+    setAlbumsRated(data?.top100 ? Object.keys(data?.top100).length : 0);
     if (error) {
       console.error("Error fetching albums:", error);
       return;
@@ -73,7 +75,7 @@ function UserProvider({ children }) {
       avatar_url: avatarUrl,
     };
 
-    if (viewedUser?.id) {
+    if (viewedUserId) {
       setViewedUser((prev) => ({ ...prev, ...userData }));
     } else {
       setUser((prev) => ({ ...prev, ...userData }));
@@ -107,6 +109,8 @@ function UserProvider({ children }) {
         albumsThisYear,
         profile,
         isViewingOwnProfile,
+        viewedUserId,
+        setViewedUserId,
       }}
     >
       {children}

@@ -1,15 +1,17 @@
 import { useContext } from "react";
 import { AlbumSearchContext } from "../context/AlbumSearchContext";
+import { useNavigate, useParams } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
 
-function AccountSearch({ user, isAccountSelected }) {
+function AccountSearch({ user }) {
   const { setShouldFetch } = useContext(AlbumSearchContext);
-  const { setViewedUser } = useContext(UserContext);
-
+  const { setViewedUserId } = useContext(UserContext);
+  const { id } = useParams();
+  const navigate = useNavigate();
   function handleAccountSearchClick() {
     setShouldFetch(false);
-    isAccountSelected(true);
-    setViewedUser(user);
+    navigate(`user/${user.id}`);
+    setViewedUserId(id);
   }
 
   return (

@@ -8,10 +8,11 @@ import Navbar from "./components/Navbar";
 import supabase from "./supabaseClient";
 import UserAccount from "./Pages/UserAccount";
 import Account from "./components/PublicAccount";
+import UserProfileRoute from "./components/UserProfileRoute";
 
 function App() {
   const [albumSelected, isAlbumSelected] = useState(false);
-  const [accountSelected, isAccountSelected] = useState(false);
+  // const [accountSelected, isAccountSelected] = useState(false);
   const [albumData, setAlbumData] = useState({});
   const { setTop100, top100, setUser, user, setSongs } =
     useContext(UserContext);
@@ -208,7 +209,7 @@ function App() {
             setAlbumsMainPage={addAlbumsMainPage}
             albumsMainPage={albumsMainPage}
             setActiveSection={setActiveSection}
-            isAccountSelected={isAccountSelected}
+            // isAccountSelected={isAccountSelected}
           />
           <Routes>
             <Route
@@ -223,13 +224,14 @@ function App() {
                   albumsMainPage={albumsMainPage}
                   activeSection={activeSection}
                   setActiveSection={setActiveSection}
-                  accountSelected={accountSelected}
+                  // accountSelected={accountSelected}
                 />
               }
             />
             <Route path="/form" element={<Form />} />
             <Route path="/account" element={<UserAccount />} />
-            <Route path="/user/:id" element={<Account />} />
+            {/* <Route path="/user/:id" element={<Account />} /> */}
+            <Route path="/user/:id" element={<UserProfileRoute />} />
           </Routes>
         </BrowserRouter>
       </AlbumSearchProvider>

@@ -41,7 +41,7 @@ function HomePage({
     return <p className="p-5 text-xl">You have to add albums first</p>;
   }
 
-  if (accountSelected) return <Account />;
+  // if (accountSelected) return <Account />;
 
   if (activeSection === "albums") {
     return (

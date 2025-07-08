@@ -3,7 +3,7 @@ import { AlbumSearchContext } from "../context/AlbumSearchContext";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { UserContext } from "../context/UserContext";
-function Logo({ isAlbumSelected, setActiveSection, isAccountSelected }) {
+function Logo({ isAlbumSelected, setActiveSection }) {
   const { setShouldFetch } = useContext(AlbumSearchContext);
   const { setViewedUser } = useContext(UserContext);
   const navigate = useNavigate();
@@ -12,7 +12,6 @@ function Logo({ isAlbumSelected, setActiveSection, isAccountSelected }) {
     setShouldFetch(false);
     setActiveSection(null);
     setViewedUser({});
-    isAccountSelected(false);
     navigate("/");
   }
   return (

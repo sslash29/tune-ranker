@@ -5,12 +5,7 @@ import { AlbumSearchContext } from "../context/AlbumSearchContext";
 import supabase from "../supabaseClient";
 import AccountSearch from "./AccountSearch";
 
-function SearchBar({
-  isAlbumSelected,
-  setAlbumData,
-  setActiveSection,
-  isAccountSelected,
-}) {
+function SearchBar({ isAlbumSelected, setAlbumData, setActiveSection }) {
   const [value, setValue] = useState("");
   const [whichFetch, setWhichFetch] = useState("albums");
   const [accountsData, setAccountsData] = useState([]);
@@ -140,12 +135,7 @@ function SearchBar({
             ))}
 
           {whichFetch === "accounts" &&
-            accountsData.map((user) => (
-              <AccountSearch
-                user={user}
-                isAccountSelected={isAccountSelected}
-              />
-            ))}
+            accountsData.map((user) => <AccountSearch user={user} />)}
 
           {whichFetch === "accounts" && accountsError && (
             <p className="text-red-400">

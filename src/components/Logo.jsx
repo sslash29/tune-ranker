@@ -2,13 +2,17 @@ import { useContext } from "react";
 import { AlbumSearchContext } from "../context/AlbumSearchContext";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-function Logo({ isAlbumSelected, setActiveSection }) {
+import { UserContext } from "../context/UserContext";
+function Logo({ isAlbumSelected, setActiveSection, isAccountSelected }) {
   const { setShouldFetch } = useContext(AlbumSearchContext);
+  const { setViewedUser } = useContext(UserContext);
   const navigate = useNavigate();
   function handleLogoClick() {
     isAlbumSelected(false);
     setShouldFetch(false);
     setActiveSection(null);
+    setViewedUser({});
+    isAccountSelected(false);
     navigate("/");
   }
   return (

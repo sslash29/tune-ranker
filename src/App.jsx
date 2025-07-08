@@ -1,17 +1,17 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import HomePage from "./Pages/HomePage";
-import Account from "./Pages/UserAccount";
 import { AlbumSearchProvider } from "./context/AlbumSearchContext";
 import Form from "./Pages/Form";
 import { UserContext } from "./context/UserContext";
 import Navbar from "./components/Navbar";
-import Test from "./Pages/Test";
 import supabase from "./supabaseClient";
+import UserAccount from "./Pages/UserAccount";
+import Account from "./components/PublicAccount";
 
 function App() {
   const [albumSelected, isAlbumSelected] = useState(false);
-  const [accountSelected, isAccountSelected] = useState([]);
+  const [accountSelected, isAccountSelected] = useState(false);
   const [albumData, setAlbumData] = useState({});
   const { setTop100, top100, setUser, user, setSongs } =
     useContext(UserContext);
@@ -228,8 +228,8 @@ function App() {
               }
             />
             <Route path="/form" element={<Form />} />
-            <Route path="/test" element={<Test />} />
-            <Route path="/account" element={<Account />} />
+            <Route path="/account" element={<UserAccount />} />
+            <Route path="/user/:id" element={<Account />} />
           </Routes>
         </BrowserRouter>
       </AlbumSearchProvider>

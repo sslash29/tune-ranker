@@ -1,18 +1,22 @@
+// context/UserContext.js
 import { useState, createContext, useEffect } from "react";
-import supabase from "../supabaseClient"; // Make sure your client is imported
+import supabase from "../supabaseClient";
 
 const UserContext = createContext();
 
 function UserProvider({ children }) {
   const [user, setUser] = useState({});
+  const [viewedUser, setViewedUser] = useState({});
   const [top100, setTop100] = useState({});
   const [isSignUp, setIsSignUp] = useState(false);
   const [songs, setSongs] = useState({});
   const [albumsThisYear, setAlbumsThisYear] = useState(0);
+
   const albumsRated = top100 ? Object.keys(top100).length : 0;
 
   const getAlbumStats = async () => {
-    if (!user?.id) return;
+    const idToUse = viewedUser?.id && user?.id ? viewedUser.id : user.id;
+    if (!idToUse) return;
 
     const currentYear = new Date().getFullYear();
     const yearStart = new Date(currentYear, 0, 1).getTime();
@@ -20,7 +24,7 @@ function UserProvider({ children }) {
     const { data, error } = await supabase
       .from("Accounts")
       .select("albums")
-      .eq("id", user.id)
+      .eq("id", idToUse)
       .single();
 
     if (error) {
@@ -33,16 +37,18 @@ function UserProvider({ children }) {
     const albumsThisYear = albums.filter(
       (album) => album?.addedAt && album.addedAt >= yearStart
     );
+
     setAlbumsThisYear(albumsThisYear.length);
   };
 
-  const getUserData = async () => {
-    if (!user?.id) return;
+  const getViewedUserData = async () => {
+    const idToUse = viewedUser?.id || user?.id;
+    if (!idToUse) return;
 
     const { data, error } = await supabase
       .from("Accounts")
       .select("username, created_at, avatar_url")
-      .eq("id", user.id)
+      .eq("id", idToUse)
       .single();
 
     if (error) {
@@ -53,32 +59,44 @@ function UserProvider({ children }) {
     let avatarUrl = null;
 
     if (data?.avatar_url) {
-      const { data: publicData } = supabase.storage
+      const { data: publicData, error: urlError } = supabase.storage
         .from("avatar")
         .getPublicUrl(data.avatar_url);
+      if (urlError) console.error("Error getting public URL:", urlError);
+
       avatarUrl = publicData?.publicUrl || null;
     }
 
-    setUser((prev) => ({
-      ...prev,
+    const userData = {
       username: data.username,
       created_at: data.created_at,
       avatar_url: avatarUrl,
-    }));
+    };
+
+    if (viewedUser?.id) {
+      setViewedUser((prev) => ({ ...prev, ...userData }));
+    } else {
+      setUser((prev) => ({ ...prev, ...userData }));
+    }
   };
 
   useEffect(() => {
-    if (user?.id) {
-      getUserData();
+    if (viewedUser?.id || user?.id) {
+      getViewedUserData();
       getAlbumStats();
     }
-  }, [user?.id]);
+  }, [viewedUser?.id, user?.id]);
+
+  const isViewingOwnProfile = !viewedUser?.id || viewedUser.id === user.id;
+  const profile = isViewingOwnProfile ? user : viewedUser;
 
   return (
     <UserContext.Provider
       value={{
         user,
         setUser,
+        viewedUser,
+        setViewedUser,
         top100,
         setTop100,
         isSignUp,
@@ -87,6 +105,8 @@ function UserProvider({ children }) {
         setSongs,
         albumsRated,
         albumsThisYear,
+        profile,
+        isViewingOwnProfile,
       }}
     >
       {children}

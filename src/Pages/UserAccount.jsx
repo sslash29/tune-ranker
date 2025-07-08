@@ -5,20 +5,19 @@ import { UserContext } from "../context/UserContext";
 import DisplayAlbums from "../components/DisplayAlbums";
 import TabComponent from "../components/TabComponent";
 
-function Account() {
+function UserAccount() {
   const navigate = useNavigate();
+  const { albumsRated, albumsThisYear, user, top100 } = useContext(UserContext);
   const [editMode, setEditMode] = useState(false);
   const [userData, setUserData] = useState({
-    username: "",
-    favoriteGenre: "",
-    favoriteArtist: "",
-    dateJoined: "",
+    username: user.username,
+    dateJoined: user.created_at,
+    avatar: user.avatar_url,
   });
   const [formData, setFormData] = useState({ ...userData });
   const [error, setError] = useState("");
-  const { albumsRated, albumsThisYear, user, top100 } = useContext(UserContext);
   const [display, setDisplay] = useState("favorite-albums");
-
+  console.dir(user);
   useEffect(() => {
     if (!user?.id) {
       navigate("/");
@@ -52,7 +51,6 @@ function Account() {
       }
     } else {
       setEditMode(false);
-      fetchUserData(); // refresh with updated data
     }
   };
 
@@ -66,7 +64,7 @@ function Account() {
           Welcome to your profile!
         </h2>
         <p className="text-lg mb-4 text-gray-600">
-          You need to{" "}
+          You need to
           <span className="font-semibold text-blue-500">rate an album</span>
           before you can view your account stats.
         </p>
@@ -85,11 +83,16 @@ function Account() {
       <div className="p-10 px-20 flex flex-col gap-15">
         <div className="flex justify-between w-[1125px]">
           <div className="flex gap-8 items-center">
-            <img
-              src="./public/nopfp.jpg"
-              alt="profile-picture"
-              className="w-[180px] h-[180px] rounded-full"
-            />
+            {user.avatar_url !== "nopfp.jpg" && user.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt="profile-picture"
+                className="w-[180px] h-[180px] rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-[180px] h-[180px] rounded-full bg-gray-300 animate-pulse" />
+            )}
+
             <div className="flex flex-col gap-2">
               {editMode ? (
                 <label>
@@ -167,4 +170,4 @@ function Account() {
   );
 }
 
-export default Account;
+export default UserAccount;

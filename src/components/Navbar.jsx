@@ -13,6 +13,7 @@ function Navbar({
       <Logo
         isAlbumSelected={isAlbumSelected}
         setActiveSection={setActiveSection}
+        isAccountSelected={isAccountSelected}
       />
       <SearchBar
         isAlbumSelected={isAlbumSelected}

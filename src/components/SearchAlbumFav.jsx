@@ -1,5 +1,4 @@
 import { useContext, useState, useEffect } from "react";
-import useFetch from "../hooks/useFetch"; // your custom hook
 import AlbumSearch from "./AlbumSearch";
 import { AlbumSearchContext } from "../context/AlbumSearchContext";
 
@@ -40,7 +39,7 @@ function SearchAlbumFav({ isAlbumSelected, setAlbumData, token, onSelect }) {
   }, [shouldFetch, token, value, setShouldFetch]);
 
   return (
-    <div>
+    <div className="bg-black text-white">
       <form onSubmit={handleSubmit} className="mb-4 flex">
         <input
           type="text"

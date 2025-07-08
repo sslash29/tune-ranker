@@ -10,14 +10,12 @@ function AlbumSearch({
   isAlbumSelected,
   setAlbumData,
   onSelect,
-  setActiveSection,
 }) {
   const { setShouldFetch } = useContext(AlbumSearchContext);
   function handleAlbumSearchClick() {
     isAlbumSelected(true);
     setAlbumData(data);
     setShouldFetch(false);
-    setActiveSection(null);
     onSelect?.({ name, favAlbumImg });
   }
   return (

@@ -230,7 +230,6 @@ function App() {
             />
             <Route path="/form" element={<Form />} />
             <Route path="/account" element={<UserAccount />} />
-            {/* <Route path="/user/:id" element={<Account />} /> */}
             <Route path="/user/:id" element={<UserProfileRoute />} />
           </Routes>
         </BrowserRouter>

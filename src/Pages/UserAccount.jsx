@@ -7,7 +7,14 @@ import TabComponent from "../components/TabComponent";
 
 function UserAccount() {
   const navigate = useNavigate();
-  const { albumsRated, albumsThisYear, user, top100 } = useContext(UserContext);
+  const {
+    albumsRated,
+    albumsThisYear,
+    user,
+    top100,
+    followersCount,
+    followingCount,
+  } = useContext(UserContext);
   const [editMode, setEditMode] = useState(false);
   const [userData, setUserData] = useState({
     username: user.username,
@@ -108,9 +115,9 @@ function UserAccount() {
               ) : (
                 <div className="flex gap items-center">
                   <h2 className="text-4xl font-bold">{userData.username}</h2>
-                  <span className="px-4 py-1 bg-blue-400 scale-70 self-baseline-last rounded">
+                  {/* <span className="px-4 py-1 bg-blue-400 scale-70 self-baseline-last rounded">
                     PRO
-                  </span>
+                  </span> */}
                 </div>
               )}
               <div className="flex gap-2 items-center">
@@ -125,12 +132,12 @@ function UserAccount() {
                 </div>
                 <img src="/SmallPipe.svg" alt="pipe" className="h-[25px]" />
                 <div className="flex flex-col items-center opacity-60">
-                  <p className="text-lg font-semibold">10</p>
+                  <p className="text-lg font-semibold">{followingCount}</p>
                   <p className="text-xs font-light">following</p>
                 </div>
                 <img src="/SmallPipe.svg" alt="pipe" className="h-[25px]" />
                 <div className="flex flex-col items-center opacity-60">
-                  <p className="text-lg font-semibold">10,900</p>
+                  <p className="text-lg font-semibold">{followersCount}</p>
                   <p className="text-xs font-light">Followers</p>
                 </div>
               </div>

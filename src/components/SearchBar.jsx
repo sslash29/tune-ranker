@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import useFetch from "../hooks/useFetch";
 import AlbumSearch from "./AlbumSearch";
 import { AlbumSearchContext } from "../context/AlbumSearchContext";
@@ -9,10 +9,10 @@ function SearchBar({ isAlbumSelected, setAlbumData, setActiveSection }) {
   const [value, setValue] = useState("");
   const [whichFetch, setWhichFetch] = useState("albums");
   const [accountsData, setAccountsData] = useState([]);
-  const [accountsFetched, setAccountsFetched] = useState(false);
   const [accountsError, setAccountsError] = useState(null);
 
   const { shouldFetch, setShouldFetch, token } = useContext(AlbumSearchContext);
+  const searchRef = useRef(null); // 👈 ref for the dropdown wrapper
 
   const url =
     shouldFetch && value && whichFetch === "albums"
@@ -41,46 +41,62 @@ function SearchBar({ isAlbumSelected, setAlbumData, setActiveSection }) {
         setShouldFetch(false);
       }
     };
+
+    const handleClickOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setShouldFetch(false);
+      }
+    };
+
     window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
+    window.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("mousedown", handleClickOutside);
+    };
   }, [setShouldFetch]);
 
   const handleAccountsClick = async () => {
     setWhichFetch("accounts");
-    if (!accountsFetched) {
-      try {
-        const { data, error } = await supabase
-          .from("Accounts")
-          .select("id, username, avatar_url, albums, favoritealbumsprofile")
-          .limit(3);
+    setShouldFetch(true);
 
-        console.log(data);
-        if (error) throw error;
+    if (!value.trim()) {
+      setAccountsData([]);
+      return;
+    }
 
-        const usersWithAvatars = data.map((user) => {
-          const { data: publicData } = supabase.storage
-            .from("avatar")
-            .getPublicUrl(user.avatar_url);
+    try {
+      const { data, error } = await supabase
+        .from("Accounts")
+        .select("id, username, avatar_url, albums, favoritealbumsprofile")
+        .ilike("username", `%${value.trim()}%`)
+        .limit(5);
 
-          const avatarUrl = publicData?.publicUrl || null;
+      if (error) throw error;
 
-          return {
-            ...user,
-            avatarUrl,
-          };
-        });
+      const usersWithAvatars = data.map((user) => {
+        const { data: publicData } = supabase.storage
+          .from("avatar")
+          .getPublicUrl(user.avatar_url);
 
-        setAccountsData(usersWithAvatars);
-        setAccountsFetched(true);
-        setAccountsError(null);
-      } catch (err) {
-        setAccountsError(err);
-      }
+        const avatarUrl = publicData?.publicUrl || null;
+
+        return {
+          ...user,
+          avatarUrl,
+        };
+      });
+
+      setAccountsData(usersWithAvatars);
+      setAccountsError(null);
+    } catch (err) {
+      setAccountsError(err);
     }
   };
 
   return (
-    <div className="bg-[#2A2A2A] text-white rounded-4xl">
+    <div className="bg-[#2A2A2A] text-white rounded-4xl" ref={searchRef}>
       <div className="flex justify-between gap-30 w-[500px] items-center relative">
         <input
           className="opacity-40 p-4 transition-all outline-0 w-[450px]"
@@ -88,12 +104,15 @@ function SearchBar({ isAlbumSelected, setAlbumData, setActiveSection }) {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") submit();
+            if (e.key === "Enter") {
+              if (whichFetch === "accounts") handleAccountsClick();
+              else submit();
+            }
           }}
         />
         <button
           className="px-2.5 border-0 cursor-pointer hover:scale-90 transition-all absolute -right-20 scale-80"
-          onClick={submit}
+          onClick={whichFetch === "accounts" ? handleAccountsClick : submit}
         >
           <img src="Search.svg" alt="search" />
         </button>
@@ -106,7 +125,10 @@ function SearchBar({ isAlbumSelected, setAlbumData, setActiveSection }) {
               className={`px-2 py-1 ${
                 whichFetch === "albums" ? "underline" : ""
               }`}
-              onClick={() => setWhichFetch("albums")}
+              onClick={() => {
+                setWhichFetch("albums");
+                setShouldFetch(true);
+              }}
             >
               Albums
             </h2>
@@ -135,7 +157,9 @@ function SearchBar({ isAlbumSelected, setAlbumData, setActiveSection }) {
             ))}
 
           {whichFetch === "accounts" &&
-            accountsData.map((user) => <AccountSearch user={user} />)}
+            accountsData.map((user) => (
+              <AccountSearch key={user.id} user={user} />
+            ))}
 
           {whichFetch === "accounts" && accountsError && (
             <p className="text-red-400">

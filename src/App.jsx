@@ -70,60 +70,6 @@ function App() {
   };
 
   useEffect(() => {
-    const updateChangedSongs = async () => {
-      if (!user?.id) return;
-
-      const { data, error } = await supabase
-        .from("Accounts")
-        .select("top100songs")
-        .eq("id", user.id)
-        .single();
-
-      if (error || !data) {
-        console.error("Error fetching top100songs before update:", error);
-        return;
-      }
-
-      const currentRaw = data.top100songs || [];
-      const current = groupSupabaseTop100(currentRaw);
-
-      if (previousRatedAlbums.current === null) {
-        previousRatedAlbums.current = current;
-        setSongs(current);
-        return;
-      }
-
-      const prev = previousRatedAlbums.current;
-      const prevMap = Object.fromEntries(
-        prev.map((item) => [item.key, item.data])
-      );
-      const currentMap = Object.fromEntries(
-        current.map((item) => [item.key, item.data])
-      );
-
-      const hasChanges = JSON.stringify(prevMap) !== JSON.stringify(currentMap);
-
-      if (!hasChanges) return;
-
-      const updatedTop100 = extractTrackRatings(current);
-
-      const { error: updateError } = await supabase
-        .from("Accounts")
-        .update({ top100songs: updatedTop100 })
-        .eq("id", user.id);
-
-      if (updateError) {
-        console.error("Error updating top100songs:", updateError);
-      } else {
-        previousRatedAlbums.current = current;
-        setSongs(current);
-      }
-    };
-
-    updateChangedSongs();
-  }, [albumsMainPage, user?.id]);
-
-  useEffect(() => {
     async function GetUser() {
       console.log("effect running");
       const storedSessionName = "sb-talmzswbtzwycpmgdfzb-auth-token";

@@ -3,7 +3,7 @@ import StarRate from "./StarRate";
 import supabase from "../supabaseClient";
 import { UserContext } from "../context/UserContext";
 
-function TracksRated({ tracks = [], albumName, artists = [] }) {
+function TracksRated({ tracks = [], albumName, artists = [], image }) {
   const [trackRatings, setTrackRatings] = useState({});
   const { user } = useContext(UserContext);
   console.log(tracks);
@@ -12,7 +12,6 @@ function TracksRated({ tracks = [], albumName, artists = [] }) {
     artistNames.length === 1
       ? `tracksRated-${albumName}-${artistNames[0]}`
       : `tracksRated-${albumName}-${artistNames.join(" & ")}`;
-
   useEffect(() => {
     async function fetchTrackRatings() {
       if (!user?.id) return;
@@ -49,7 +48,6 @@ function TracksRated({ tracks = [], albumName, artists = [] }) {
 
     fetchTrackRatings();
   }, [albumKey, user?.id]);
-
   async function handleTrackRatingChange(trackId, newRating) {
     const updatedRatings = {
       ...trackRatings,
@@ -57,16 +55,18 @@ function TracksRated({ tracks = [], albumName, artists = [] }) {
     };
     setTrackRatings(updatedRatings);
 
-    const trackInfo = tracks.find((t) => t.id === trackId); // ✅ find the actual track object
-
+    const trackInfo = tracks.find(
+      (t) => t.id.toString() === trackId.toString()
+    );
     const newEntry = {
       albumKey,
       track: trackId,
       rating: newRating,
-      trackName: trackInfo?.name || "Unknown", // ✅ include the track name safely
-      albumInfo: `${albumName}-${artistNames.join(" & ")}`, // optional but consistent with your schema
+      trackName: trackInfo?.name || "Unknown",
+      albumInfo: `${albumName}-${artistNames.join(" & ")}`,
+      albumImg: image,
     };
-
+    console.log(newEntry);
     try {
       const { data, error: fetchError } = await supabase
         .from("Accounts")
@@ -81,19 +81,32 @@ function TracksRated({ tracks = [], albumName, artists = [] }) {
 
       const existing = data.top100songs || [];
 
-      const filtered = existing.filter(
+      // 🛠 Fix: Normalize all entries to ensure consistent keys
+      const normalized = existing.map((item) => ({
+        albumKey: item.albumKey,
+        track: item.track,
+        rating: item.rating,
+        trackName: item.trackName || "Unknown",
+        albumInfo: item.albumInfo || "Unknown",
+        albumImg: image || "no-img",
+      }));
+      console.log(newEntry);
+      const filtered = normalized.filter(
         (item) => !(item.albumKey === albumKey && item.track === trackId)
       );
-
+      console.log(filtered);
       const updated = [...filtered, newEntry];
-
-      const { error: updateError } = await supabase
+      console.log(updated);
+      const { data: updatedData, error: updateError } = await supabase
         .from("Accounts")
         .update({ top100songs: updated })
-        .eq("id", user.id);
+        .eq("id", user.id)
+        .select(); // Force return of updated row
 
       if (updateError) {
         console.error("Error updating rating:", updateError);
+      } else {
+        console.log("Updated track ratings:", updatedData);
       }
     } catch (e) {
       console.error("Unexpected error:", e);

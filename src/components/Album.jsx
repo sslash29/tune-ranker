@@ -31,9 +31,6 @@ function Album({
     { headers: undefined }
   );
 
-  console.log(albumData);
-  console.log(artistGenre);
-
   function getFormattedAlbumLength(tracks) {
     if (!Array.isArray(tracks)) return "N/A";
     const totalMs = tracks.reduce((sum, track) => sum + track.duration_ms, 0);

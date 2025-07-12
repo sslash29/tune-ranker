@@ -19,7 +19,7 @@ function AlbumLog({
   const [isMore, setIsMore] = useState(false);
   const { user } = useContext(UserContext);
   let artists = [];
-
+  console.log(albumData);
   useEffect(() => {
     async function fetchAlbumData() {
       const { data, error } = await supabase
@@ -108,7 +108,6 @@ function AlbumLog({
       console.error("Error fetching top100 albums:", fetchError);
       return;
     }
-    console.log(userData);
 
     const updatedTop100Albums = [
       ...(userData?.top100 || []).filter(
@@ -168,6 +167,7 @@ function AlbumLog({
             tracks={tracks}
             albumName={albumData.name}
             artists={artists}
+            image={albumData.images?.[2].url}
           />
         </div>
       </div>

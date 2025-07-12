@@ -2,17 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../context/UserContext";
 import { FaStar, FaStarHalfAlt } from "react-icons/fa";
 import supabase from "../supabaseClient";
-
-// Helper: parse album and artist from albumInfo
-function parseAlbumInfo(albumInfo) {
-  const parts = albumInfo.split("-");
-  if (parts.length === 2) {
-    return { album: parts[0], artists: parts[1].split("&") };
-  }
-  const artistPart = parts[parts.length - 1];
-  const album = parts.slice(0, parts.length - 1).join("-");
-  return { album, artists: artistPart.split("&") };
-}
+import capitalizeWords from "../helpers/capatalize";
 
 // Star rating
 function StaticStarRating({ rating }) {
@@ -69,7 +59,6 @@ function TopSongs() {
   const handleSubmitPosition = async (e) => {
     e.preventDefault();
     const pos = parseInt(newPosition, 10);
-
     if (isNaN(pos) || pos < 1 || pos > ratedSongs.length) return;
 
     const updated = [...ratedSongs];
@@ -90,59 +79,72 @@ function TopSongs() {
     setSelectedIndex(null);
     setNewPosition("");
   };
+
   return (
     <div className="p-5">
       {ratedSongs.length < 1 && <p>You haven't rated any songs yet</p>}
-      <div className="flex flex-col gap-4">
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {ratedSongs.map((song, index) => {
-          console.log(song);
-          const { album, artists } = parseAlbumInfo(song.albumInfo);
           const isSelected = selectedIndex === index;
 
           return (
-            <div
-              key={index}
-              className={`flex flex-col rounded-xl shadow p-4 w-[800px] bg-white ${
-                isSelected ? "ring-2 ring-blue-400" : ""
-              }`}
-              onClick={() => setSelectedIndex(index)}
-              onDoubleClick={() => setSelectedIndex(null)}
-            >
-              <div className="flex justify-between">
-                <div>
-                  <p className="font-semibold text-lg">
-                    {index + 1}. {song.trackName}
-                  </p>
-                  <p className="text-sm text-gray-600">{album}</p>
-                  <p className="text-sm text-gray-600">
-                    Artist(s): {artists.join(", ")}
-                  </p>
-                </div>
-                <StaticStarRating rating={song.rating} />
-              </div>
-
-              {isSelected && (
-                <form
-                  onSubmit={handleSubmitPosition}
-                  className="flex gap-4 mt-2"
-                >
-                  <input
-                    type="number"
-                    min="1"
-                    max={ratedSongs.length}
-                    value={newPosition}
-                    onChange={(e) => setNewPosition(e.target.value)}
-                    className="border p-2 rounded w-[200px]"
-                    placeholder="Enter new position"
+            <div key={index}>
+              <div className="text-xl font-semibold mb-1">{index + 1}</div>
+              <div className="bg-[#2A2A2A] p-5 rounded-xl flex gap-4 w-full max-w-[400px]">
+                {/* Album Image */}
+                <div className="min-w-[100px] max-w-[100px]">
+                  <img
+                    src={song.albumImg || ""}
+                    alt="album"
+                    className="w-full h-[100px] object-cover rounded"
                   />
-                  <button
-                    type="submit"
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                  >
-                    Move
-                  </button>
-                </form>
-              )}
+                </div>
+
+                {/* Song Details */}
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold">
+                    {capitalizeWords(song.trackName || "Unknown")}
+                  </h3>
+                  <p className="text-sm text-gray-400">{song.albumInfo}</p>
+                  <div className="mt-1">
+                    <StaticStarRating rating={song.rating} />
+                  </div>
+
+                  <div className="flex items-center gap-3 mt-3 flex-wrap">
+                    <button
+                      onClick={() =>
+                        setSelectedIndex(isSelected ? null : index)
+                      }
+                      className="bg-[#252525] p-2 px-4 rounded-lg text-sm opacity-80"
+                    >
+                      {isSelected ? "Cancel" : "Edit Ranking"}
+                    </button>
+
+                    {isSelected && (
+                      <form
+                        onSubmit={handleSubmitPosition}
+                        className="flex items-center gap-2"
+                      >
+                        <input
+                          type="number"
+                          min="1"
+                          max={ratedSongs.length}
+                          value={newPosition}
+                          onChange={(e) => setNewPosition(e.target.value)}
+                          className="bg-[#1f1f1f] text-white text-sm p-1 rounded w-16"
+                        />
+                        <button
+                          type="submit"
+                          className="bg-green-600 px-2 py-1 rounded text-sm"
+                        >
+                          OK
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           );
         })}
